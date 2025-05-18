@@ -1,17 +1,40 @@
-
-import { Link } from 'react-router-dom';
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { 
-  Sheet, 
-  SheetContent, 
-  SheetTrigger 
-} from "@/components/ui/sheet";
-import { Menu, X, Wallet } from 'lucide-react';
-import { useWallet } from '@/contexts/WalletContext';
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Menu, X, Wallet } from "lucide-react";
+import { useCardano, ConnectWalletList, ConnectWalletButton } from "@cardano-foundation/cardano-connect-with-wallet";
 
 export const Navigation = () => {
-  const { isConnected, walletAddress, connectWallet, disconnectWallet } = useWallet();
-  
+  const {
+    isEnabled,
+    isConnected,
+    enabledWallet,
+    stakeAddress,
+    signMessage,
+    connect,
+    disconnect,
+
+
+
+  } = useCardano();
+
+  const onConnect = () => alert("Successfully connected!");
+
+  console.log(
+    "fkjasdhfahsl",
+    isEnabled,
+    isConnected,
+    enabledWallet,
+    stakeAddress,
+    signMessage,
+    connect,
+    disconnect
+  );
+
+  const onSign = () => {
+
+  }
+
   return (
     <nav className="border-b border-gray-100 py-4">
       <div className="container flex items-center justify-between">
@@ -25,29 +48,60 @@ export const Navigation = () => {
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center space-x-6">
-          <Link to="/dashboard" className="text-gray-600 hover:text-ajo-primary transition-colors">Dashboard</Link>
-          <Link to="/plans" className="text-gray-600 hover:text-ajo-primary transition-colors">Browse Plans</Link>
-          <Link to="/create-plan" className="text-gray-600 hover:text-ajo-primary transition-colors">Create Plan</Link>
-          
+          <Link
+            to="/dashboard"
+            className="text-gray-600 hover:text-ajo-primary transition-colors"
+          >
+            Dashboard
+          </Link>
+          <Link
+            to="/plans"
+            className="text-gray-600 hover:text-ajo-primary transition-colors"
+          >
+            Browse Plans
+          </Link>
+          <Link
+            to="/create-plan"
+            className="text-gray-600 hover:text-ajo-primary transition-colors"
+          >
+            Create Plan
+          </Link>
+
           {!isConnected ? (
-            <Button onClick={connectWallet} className="btn-primary flex items-center">
-              <Wallet size={16} className="mr-2" />
-              Connect Wallet
-            </Button>
+            // <Button
+            //   onClick={() =>
+            //     connect("yoroi", onConnect)
+            //   }
+            //   className="btn-primary flex items-center"
+            // >
+            //   <Wallet size={16} className="mr-2" />
+            //   Connect Wallet
+            // </Button>
+
+            <ConnectWalletButton
+              message="Please sign Augusta Ada King, Countess of Lovelace"
+              onSignMessage={onSign}
+              onConnect={onConnect}
+            />
           ) : (
             <div className="relative group">
-              <Button variant="outline" className="border-ajo-primary text-ajo-primary hover:bg-ajo-primary hover:text-white transition-all">
+              <Button
+                variant="outline"
+                className="border-ajo-primary text-ajo-primary hover:bg-ajo-primary hover:text-white transition-all"
+              >
                 <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse mr-2"></span>
-                {walletAddress?.slice(0, 6)}...{walletAddress?.slice(-4)}
+                {enabledWallet?.slice(0, 6)}...{enabledWallet?.slice(-4)}
               </Button>
-              
+
               <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-md hidden group-hover:block z-10">
                 <div className="py-2 px-4 border-b border-gray-100">
                   <p className="text-xs text-gray-500">Connected Address</p>
-                  <p className="text-sm font-medium truncate">{walletAddress}</p>
+                  <p className="text-sm font-medium truncate">
+                    {enabledWallet}
+                  </p>
                 </div>
-                <button 
-                  onClick={disconnectWallet}
+                <button
+                  onClick={disconnect}
                   className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
                 >
                   Disconnect Wallet
@@ -78,23 +132,42 @@ export const Navigation = () => {
                   </SheetTrigger>
                 </div>
                 <div className="flex flex-col space-y-4 py-6">
-                  <Link to="/dashboard" className="text-lg font-medium">Dashboard</Link>
-                  <Link to="/plans" className="text-lg font-medium">Browse Plans</Link>
-                  <Link to="/create-plan" className="text-lg font-medium">Create Plan</Link>
+                  <Link to="/dashboard" className="text-lg font-medium">
+                    Dashboard
+                  </Link>
+                  <Link to="/plans" className="text-lg font-medium">
+                    Browse Plans
+                  </Link>
+                  <Link to="/create-plan" className="text-lg font-medium">
+                    Create Plan
+                  </Link>
                 </div>
                 <div className="mt-auto py-6">
                   {!isConnected ? (
-                    <Button onClick={connectWallet} className="w-full btn-primary">
+                    <Button
+                      onClick={() =>
+                        connect("wallet_name_with_cip30_support", onConnect)
+                      }
+                      className="w-full btn-primary"
+                    >
                       <Wallet size={16} className="mr-2" />
                       Connect Wallet
                     </Button>
                   ) : (
                     <div className="space-y-2">
-                      <Button variant="outline" className="w-full border-ajo-primary text-ajo-primary">
+                      <Button
+                        variant="outline"
+                        className="w-full border-ajo-primary text-ajo-primary"
+                      >
                         <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse mr-2"></span>
-                        {walletAddress?.slice(0, 6)}...{walletAddress?.slice(-4)}
+                        {enabledWallet?.slice(0, 6)}...
+                        {enabledWallet?.slice(-4)}
                       </Button>
-                      <Button onClick={disconnectWallet} variant="ghost" className="w-full text-red-600">
+                      <Button
+                        onClick={disconnect}
+                        variant="ghost"
+                        className="w-full text-red-600"
+                      >
                         Disconnect Wallet
                       </Button>
                     </div>
