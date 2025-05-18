@@ -15,6 +15,8 @@ export const Navigation = () => {
     signMessage,
     connect,
     disconnect,
+    accountBalance,
+    cip45Address
 
 
 
@@ -26,11 +28,10 @@ export const Navigation = () => {
     "fkjasdhfahsl",
     isEnabled,
     isConnected,
-    enabledWallet,
     stakeAddress,
-    signMessage,
-    connect,
-    disconnect
+    stakeAddress,
+    cip45Address.current
+
   );
 
   const onSign = () => {
@@ -91,15 +92,17 @@ export const Navigation = () => {
                 variant="outline"
                 className="border-ajo-primary text-ajo-primary hover:bg-ajo-primary hover:text-white transition-all"
               >
+
+                <span>{accountBalance} ADA</span>
                 <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse mr-2"></span>
-                {enabledWallet?.slice(0, 6)}...{enabledWallet?.slice(-4)}
+                {stakeAddress?.slice(0, 6)}...{stakeAddress?.slice(-4)}
               </Button>
 
               <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-md hidden group-hover:block z-10">
                 <div className="py-2 px-4 border-b border-gray-100">
                   <p className="text-xs text-gray-500">Connected Address</p>
                   <p className="text-sm font-medium truncate">
-                    {enabledWallet}
+                    {stakeAddress}
                   </p>
                 </div>
                 <button
@@ -168,8 +171,8 @@ export const Navigation = () => {
                         className="w-full border-ajo-primary text-ajo-primary"
                       >
                         <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse mr-2"></span>
-                        {enabledWallet?.slice(0, 6)}...
-                        {enabledWallet?.slice(-4)}
+                        {stakeAddress?.slice(0, 6)}...
+                        {stakeAddress?.slice(-4)}
                       </Button>
                       <Button
                         onClick={disconnect}
