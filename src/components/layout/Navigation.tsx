@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu, X, Wallet } from "lucide-react";
 import { useCardano, ConnectWalletList, ConnectWalletButton } from "@cardano-foundation/cardano-connect-with-wallet";
+import { toast } from "sonner";
+import { Toast } from "@radix-ui/react-toast";
 
 export const Navigation = () => {
   const {
@@ -18,7 +20,7 @@ export const Navigation = () => {
 
   } = useCardano();
 
-  const onConnect = () => alert("Successfully connected!");
+  // const onConnect = () => alert("Successfully connected!");
 
   console.log(
     "fkjasdhfahsl",
@@ -70,7 +72,7 @@ export const Navigation = () => {
           {!isConnected ? (
             // <Button
             //   onClick={() =>
-            //     connect("yoroi", onConnect)
+            //     connect("yoroi", () => toast.success("Wallet connect successful"))
             //   }
             //   className="btn-primary flex items-center"
             // >
@@ -81,7 +83,7 @@ export const Navigation = () => {
             <ConnectWalletButton
               message="Please sign Augusta Ada King, Countess of Lovelace"
               onSignMessage={onSign}
-              onConnect={onConnect}
+              onConnect={() => toast.success("Wallet connect successful")}
             />
           ) : (
             <div className="relative group">
@@ -144,15 +146,21 @@ export const Navigation = () => {
                 </div>
                 <div className="mt-auto py-6">
                   {!isConnected ? (
-                    <Button
-                      onClick={() =>
-                        connect("wallet_name_with_cip30_support", onConnect)
-                      }
-                      className="w-full btn-primary"
-                    >
-                      <Wallet size={16} className="mr-2" />
-                      Connect Wallet
-                    </Button>
+                    // <Button
+                    //   onClick={() =>
+                    //     connect("yoroi", () => toast.success("Wallet connect successful"))
+                    //   }
+                    //   className="w-full btn-primary"
+                    // >
+                    //   <Wallet size={16} className="mr-2" />
+                    //   Connect Wallet
+                    // </Button>
+
+                    <ConnectWalletButton
+                      message="Please sign Augusta Ada King, Countess of Lovelace"
+                      onSignMessage={onSign}
+                      onConnect={() => toast.success("Wallet connect successful")}
+                    />
                   ) : (
                     <div className="space-y-2">
                       <Button

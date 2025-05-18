@@ -24,31 +24,35 @@ import { Progress } from '@/components/ui/progress';
 import { Calendar, Check, Clock, Clock8, Users } from 'lucide-react';
 import JoinPlanModal from '@/components/modals/JoinPlanModal';
 import ContributeModal from '@/components/modals/ContributeModal';
-import { useWallet } from '@/contexts/WalletContext';
+import { useCardano } from "@cardano-foundation/cardano-connect-with-wallet";
+
 
 const PlanDetail = () => {
   const { planId } = useParams<{ planId: string }>();
   const { toast } = useToast();
-  const { isConnected } = useWallet();
   const [activeTab, setActiveTab] = useState('overview');
   const [joinModalOpen, setJoinModalOpen] = useState(false);
   const [contributeModalOpen, setContributeModalOpen] = useState(false);
   const [selectedRound, setSelectedRound] = useState(1);
-  
+
+  const {
+    isConnected,
+  } = useCardano();
+
   // Find the plan from mock data
   const plan = mockPlans.find((p) => p.id === planId);
-  
+
   // Get participants for this plan
   const participants = getPlanParticipants(planId || '');
-  
+
   // Check if current user is already a participant
   const isParticipant = defaultUser.plans.includes(planId || '');
-  
+
   // Calculate participation rate
-  const participationRate = plan 
+  const participationRate = plan
     ? (plan.currentParticipants / plan.totalParticipants) * 100
     : 0;
-    
+
   // Payout schedule calculation based on participants
   const payoutSchedule = [...participants, ...Array(plan && plan.totalParticipants - participants.length).fill(null)]
     .map((participant, index) => ({
@@ -66,10 +70,10 @@ const PlanDetail = () => {
       });
       return;
     }
-    
+
     setJoinModalOpen(true);
   };
-  
+
   const handleContribute = (roundNumber: number) => {
     if (!isConnected) {
       toast({
@@ -79,7 +83,7 @@ const PlanDetail = () => {
       });
       return;
     }
-    
+
     setSelectedRound(roundNumber);
     setContributeModalOpen(true);
   };
@@ -108,7 +112,7 @@ const PlanDetail = () => {
             <span>/</span>
             <span className="truncate">{plan.name}</span>
           </div>
-          
+
           <div className="flex flex-col md:flex-row justify-between md:items-center">
             <div>
               <div className="flex items-center gap-3">
@@ -119,16 +123,16 @@ const PlanDetail = () => {
               </div>
               <p className="text-gray-600 mt-2">{plan.description}</p>
             </div>
-            
+
             {!isParticipant && plan.status === 'Open' && (
-              <Button 
+              <Button
                 className="mt-4 md:mt-0 bg-ajo-primary hover:bg-ajo-secondary text-white"
                 onClick={handleJoinPlan}
               >
                 Request to Join
               </Button>
             )}
-            
+
             {isParticipant && (
               <div className="mt-4 md:mt-0 flex items-center gap-2 bg-green-100 text-green-800 px-3 py-2 rounded-md">
                 <Check size={16} />
@@ -137,7 +141,7 @@ const PlanDetail = () => {
             )}
           </div>
         </div>
-        
+
         {/* Content Area */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Plan Details */}
@@ -163,7 +167,7 @@ const PlanDetail = () => {
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="pt-2">
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center">
@@ -178,7 +182,7 @@ const PlanDetail = () => {
                   </div>
                   <Progress value={participationRate} className="h-2" />
                 </div>
-                
+
                 <div className="flex items-center justify-between pt-2">
                   <div className="flex items-center">
                     <Calendar size={16} className="text-gray-500 mr-1" />
@@ -188,7 +192,7 @@ const PlanDetail = () => {
                     {plan.createdAt.toLocaleDateString()}
                   </span>
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <Users size={16} className="text-gray-500 mr-1" />
@@ -196,7 +200,7 @@ const PlanDetail = () => {
                   </div>
                   <span className="text-sm font-medium">{plan.initiator}</span>
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <TrustScoreBadge score={plan.trustScoreRequired} size="sm" showLabel={false} />
@@ -204,13 +208,13 @@ const PlanDetail = () => {
                   </div>
                   <span className="text-sm font-medium">{plan.trustScoreRequired}/100</span>
                 </div>
-                
+
                 <div className="pt-4">
                   <Button variant="outline" className="w-full">View on Blockchain</Button>
                 </div>
               </CardContent>
             </Card>
-            
+
             {/* Total Pool Card */}
             <Card>
               <CardHeader className="pb-3">
@@ -222,7 +226,7 @@ const PlanDetail = () => {
                     <p className="text-sm text-gray-500">Total Pool Size</p>
                     <p className="font-bold text-2xl">{plan.totalAmount} ADA</p>
                   </div>
-                  
+
                   <div>
                     <p className="text-sm text-gray-500">Current Round</p>
                     <div className="flex items-center">
@@ -232,7 +236,7 @@ const PlanDetail = () => {
                       <span className="ml-2 font-medium">of {plan.totalParticipants}</span>
                     </div>
                   </div>
-                  
+
                   <div>
                     <p className="text-sm text-gray-500">Next Payout</p>
                     <div className="flex items-center mt-1">
@@ -244,7 +248,7 @@ const PlanDetail = () => {
               </CardContent>
             </Card>
           </div>
-          
+
           {/* Main Tabs */}
           <div className="lg:col-span-2">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -253,7 +257,7 @@ const PlanDetail = () => {
                 <TabsTrigger value="members">Members</TabsTrigger>
                 <TabsTrigger value="schedule">Payout Schedule</TabsTrigger>
               </TabsList>
-              
+
               {/* Overview Tab */}
               <TabsContent value="overview">
                 <Card>
@@ -265,17 +269,17 @@ const PlanDetail = () => {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <p>
-                      This is a {plan.frequency.toLowerCase()} rotating savings plan where each member 
-                      contributes {plan.contributionAmount} ADA {plan.frequency.toLowerCase()} for a period 
+                      This is a {plan.frequency.toLowerCase()} rotating savings plan where each member
+                      contributes {plan.contributionAmount} ADA {plan.frequency.toLowerCase()} for a period
                       of {plan.duration} {plan.duration === 1 ? 'month' : 'months'}.
                     </p>
-                    
+
                     <p>
-                      Each {plan.frequency.toLowerCase()}, all members contribute to the pool, and one member 
-                      receives the entire pool amount. The order of recipients is determined by trust scores 
+                      Each {plan.frequency.toLowerCase()}, all members contribute to the pool, and one member
+                      receives the entire pool amount. The order of recipients is determined by trust scores
                       and when they joined the plan.
                     </p>
-                    
+
                     <h3 className="font-bold text-lg mt-6">Key Features</h3>
                     <ul className="list-disc pl-5 space-y-1">
                       <li>Smart contract-secured funds</li>
@@ -306,7 +310,7 @@ const PlanDetail = () => {
                             </div>
                           </div>
                         </div>
-                        
+
                         <div className="rounded-lg border p-4">
                           <div className="flex justify-between items-center">
                             <div>
@@ -319,7 +323,7 @@ const PlanDetail = () => {
                             </div>
                           </div>
                           <div className="mt-4">
-                            <Button 
+                            <Button
                               className="w-full bg-ajo-primary hover:bg-ajo-secondary text-white"
                               onClick={() => handleContribute(2)}
                             >
@@ -332,7 +336,7 @@ const PlanDetail = () => {
                   </Card>
                 )}
               </TabsContent>
-              
+
               {/* Members Tab */}
               <TabsContent value="members">
                 <Card>
@@ -360,7 +364,7 @@ const PlanDetail = () => {
                           <TrustScoreBadge score={participant.trustScore} />
                         </div>
                       ))}
-                      
+
                       {/* Placeholder for empty slots */}
                       {Array(plan.totalParticipants - participants.length).fill(0).map((_, idx) => (
                         <div key={`empty-${idx}`} className="flex items-center justify-between p-3 border rounded-lg border-dashed">
@@ -382,7 +386,7 @@ const PlanDetail = () => {
                   </CardContent>
                 </Card>
               </TabsContent>
-              
+
               {/* Schedule Tab */}
               <TabsContent value="schedule">
                 <Card>
@@ -395,11 +399,10 @@ const PlanDetail = () => {
                   <CardContent>
                     <div className="space-y-3">
                       {payoutSchedule.map((payout, index) => (
-                        <div 
-                          key={`payout-${index}`} 
-                          className={`flex items-center justify-between p-3 border rounded-lg ${
-                            index === 0 ? 'bg-ajo-light/20 border-ajo-light' : ''
-                          }`}
+                        <div
+                          key={`payout-${index}`}
+                          className={`flex items-center justify-between p-3 border rounded-lg ${index === 0 ? 'bg-ajo-light/20 border-ajo-light' : ''
+                            }`}
                         >
                           <div className="flex items-center">
                             <div className="h-8 w-8 rounded-full bg-ajo-primary flex items-center justify-center text-white font-medium">
@@ -433,22 +436,22 @@ const PlanDetail = () => {
           </div>
         </div>
       </div>
-      
+
       {/* Modals */}
       {plan && (
         <>
-          <JoinPlanModal 
-            planName={plan.name} 
-            planId={plan.id} 
-            open={joinModalOpen} 
-            onClose={() => setJoinModalOpen(false)} 
+          <JoinPlanModal
+            planName={plan.name}
+            planId={plan.id}
+            open={joinModalOpen}
+            onClose={() => setJoinModalOpen(false)}
           />
-          
-          <ContributeModal 
-            plan={plan} 
-            roundNumber={selectedRound} 
-            open={contributeModalOpen} 
-            onClose={() => setContributeModalOpen(false)} 
+
+          <ContributeModal
+            plan={plan}
+            roundNumber={selectedRound}
+            open={contributeModalOpen}
+            onClose={() => setContributeModalOpen(false)}
           />
         </>
       )}

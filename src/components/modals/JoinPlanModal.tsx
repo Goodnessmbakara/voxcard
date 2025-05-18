@@ -12,8 +12,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { useWallet } from "@/contexts/WalletContext";
 import { UserPlus } from "lucide-react";
+import { useCardano } from "@cardano-foundation/cardano-connect-with-wallet";
+
 
 interface JoinPlanModalProps {
   planName: string;
@@ -24,10 +25,17 @@ interface JoinPlanModalProps {
 
 export const JoinPlanModal = ({ planName, planId, open, onClose }: JoinPlanModalProps) => {
   const { toast } = useToast();
-  const { isConnected, openWalletForTransaction } = useWallet();
+  const {
+
+    isConnected,
+
+
+
+  } = useCardano();
+
   const [sponsor, setSponsor] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   // Handle the join plan request
   const handleSubmit = async () => {
     if (!sponsor.trim()) {
@@ -38,7 +46,7 @@ export const JoinPlanModal = ({ planName, planId, open, onClose }: JoinPlanModal
       });
       return;
     }
-    
+
     if (!isConnected) {
       toast({
         title: "Wallet not connected",
@@ -47,27 +55,27 @@ export const JoinPlanModal = ({ planName, planId, open, onClose }: JoinPlanModal
       });
       return;
     }
-    
+
     setIsSubmitting(true);
-    
+
     // Execute blockchain transaction for join request with 0.5 ADA fee
-    const transactionSuccess = await openWalletForTransaction(
-      0.5, 
-      `Join request for ${planName}`,
-      planId
-    );
-    
-    if (transactionSuccess) {
-      toast({
-        title: "Join request submitted!",
-        description: `Your request to join ${planName} has been submitted. Members will now vote on your request.`,
-      });
-      onClose();
-    }
-    
+    // const transactionSuccess = await openWalletForTransaction(
+    //   0.5,
+    //   `Join request for ${planName}`,
+    //   planId
+    // );
+
+    // if (transactionSuccess) {
+    //   toast({
+    //     title: "Join request submitted!",
+    //     description: `Your request to join ${planName} has been submitted. Members will now vote on your request.`,
+    //   });
+    //   onClose();
+    // }pu
+
     setIsSubmitting(false);
   };
-  
+
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DialogContent className="sm:max-w-[425px]">
@@ -77,7 +85,7 @@ export const JoinPlanModal = ({ planName, planId, open, onClose }: JoinPlanModal
             To join "{planName}", you need to be vouched for by an existing member.
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="py-4 space-y-4">
           <div className="space-y-2">
             <Label htmlFor="sponsor">Sponsor (Existing Member)</Label>
@@ -89,7 +97,7 @@ export const JoinPlanModal = ({ planName, planId, open, onClose }: JoinPlanModal
             />
             <p className="text-sm text-gray-500">This member will be notified to vouch for you.</p>
           </div>
-          
+
           <div className="rounded-md bg-blue-50 p-4">
             <div className="flex">
               <div className="flex-shrink-0">
@@ -107,7 +115,7 @@ export const JoinPlanModal = ({ planName, planId, open, onClose }: JoinPlanModal
             </div>
           </div>
         </div>
-        
+
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
             Cancel

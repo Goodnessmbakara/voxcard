@@ -12,9 +12,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { useWallet } from "@/contexts/WalletContext";
 import { Plan } from '@/lib/mock-data';
 import { Check, Coins } from 'lucide-react';
+import { useCardano } from "@cardano-foundation/cardano-connect-with-wallet";
+
 
 interface ContributeModalProps {
   plan: Plan;
@@ -25,10 +26,15 @@ interface ContributeModalProps {
 
 export const ContributeModal = ({ plan, roundNumber, open, onClose }: ContributeModalProps) => {
   const { toast } = useToast();
-  const { isConnected, openWalletForTransaction } = useWallet();
+
+  const {
+    isConnected,
+
+
+  } = useCardano();
   const [amount, setAmount] = useState(plan.contributionAmount.toString());
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   // Handle amount change
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -36,11 +42,11 @@ export const ContributeModal = ({ plan, roundNumber, open, onClose }: Contribute
       setAmount(value);
     }
   };
-  
+
   // Handle the contribution submission
   const handleContribute = async () => {
     const contributionAmount = parseFloat(amount);
-    
+
     if (isNaN(contributionAmount) || contributionAmount <= 0) {
       toast({
         title: "Invalid amount",
@@ -49,7 +55,7 @@ export const ContributeModal = ({ plan, roundNumber, open, onClose }: Contribute
       });
       return;
     }
-    
+
     if (!isConnected) {
       toast({
         title: "Wallet not connected",
@@ -58,9 +64,9 @@ export const ContributeModal = ({ plan, roundNumber, open, onClose }: Contribute
       });
       return;
     }
-    
+
     setIsSubmitting(true);
-    
+
     // If the plan doesn't allow partial payments, enforce the full amount
     if (!plan.allowPartial && contributionAmount < plan.contributionAmount) {
       toast({
@@ -71,26 +77,26 @@ export const ContributeModal = ({ plan, roundNumber, open, onClose }: Contribute
       setIsSubmitting(false);
       return;
     }
-    
+
     // Execute blockchain transaction
-    const transactionSuccess = await openWalletForTransaction(
-      contributionAmount,
-      `Round ${roundNumber} contribution for ${plan.name}`,
-      plan.id,
-      roundNumber
-    );
-    
-    if (transactionSuccess) {
-      toast({
-        title: "Contribution successful!",
-        description: `You've contributed ${contributionAmount} ADA to round ${roundNumber}`,
-      });
-      onClose();
-    }
-    
+    // const transactionSuccess = await openWalletForTransaction(
+    //   contributionAmount,
+    //   `Round ${roundNumber} contribution for ${plan.name}`,
+    //   plan.id,
+    //   roundNumber
+    // );
+
+    // if (transactionSuccess) {
+    //   toast({
+    //     title: "Contribution successful!",
+    //     description: `You've contributed ${contributionAmount} ADA to round ${roundNumber}`,
+    //   });
+    //   onClose();
+    // }
+
     setIsSubmitting(false);
   };
-  
+
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DialogContent className="sm:max-w-[425px]">
@@ -100,7 +106,7 @@ export const ContributeModal = ({ plan, roundNumber, open, onClose }: Contribute
             Round {roundNumber} contribution for "{plan.name}"
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="py-4 space-y-4">
           <div className="space-y-2">
             <Label htmlFor="amount">Contribution Amount (ADA)</Label>
@@ -122,7 +128,7 @@ export const ContributeModal = ({ plan, roundNumber, open, onClose }: Contribute
               </p>
             )}
           </div>
-          
+
           <div className="rounded-md bg-green-50 p-4">
             <div className="flex">
               <div className="flex-shrink-0">
@@ -142,7 +148,7 @@ export const ContributeModal = ({ plan, roundNumber, open, onClose }: Contribute
             </div>
           </div>
         </div>
-        
+
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
             Cancel
