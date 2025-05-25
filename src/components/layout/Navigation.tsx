@@ -5,6 +5,7 @@ import { Menu, X, Wallet } from "lucide-react";
 import { useCardano, ConnectWalletList, ConnectWalletButton } from "@cardano-foundation/cardano-connect-with-wallet";
 import { toast } from "sonner";
 import { Toast } from "@radix-ui/react-toast";
+import { useState, useRef, useEffect } from "react";
 
 export const Navigation = () => {
   const {
@@ -21,6 +22,23 @@ export const Navigation = () => {
 
 
   } = useCardano();
+  const [showDisconnect, setShowDisconnect] = useState(false);
+  const disconnectMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close menu on outside click
+  useEffect(() => {
+    if (!showDisconnect) return;
+    function handleClick(event: MouseEvent) {
+      if (
+        disconnectMenuRef.current &&
+        !disconnectMenuRef.current.contains(event.target as Node)
+      ) {
+        setShowDisconnect(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [showDisconnect]);
 
   // const onConnect = () => alert("Successfully connected!");
 
@@ -87,8 +105,9 @@ export const Navigation = () => {
               onConnect={() => toast.success("Wallet connect successful")}
             />
           ) : (
-            <div className="relative group">
+            <div className="relative">
               <Button
+                onClick={() => setShowDisconnect((prev) => !prev)}
                 variant="outline"
                 className="border-ajo-primary text-ajo-primary hover:bg-ajo-primary hover:text-white transition-all"
               >
@@ -98,20 +117,28 @@ export const Navigation = () => {
                 {stakeAddress?.slice(0, 6)}...{stakeAddress?.slice(-4)}
               </Button>
 
-              <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-md hidden group-hover:block z-10">
-                <div className="py-2 px-4 border-b border-gray-100">
-                  <p className="text-xs text-gray-500">Connected Address</p>
-                  <p className="text-sm font-medium truncate">
-                    {stakeAddress}
-                  </p>
-                </div>
-                <button
-                  onClick={disconnect}
-                  className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+              {showDisconnect && (
+                <div
+                  ref={disconnectMenuRef}
+                  className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-md z-10"
                 >
-                  Disconnect Wallet
-                </button>
-              </div>
+                  <div className="py-2 px-4 border-b border-gray-100">
+                    <p className="text-xs text-gray-500">Connected Address</p>
+                    <p className="text-sm font-medium truncate">
+                      {stakeAddress}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      disconnect();
+                      setShowDisconnect(false);
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                  >
+                    Disconnect Wallet
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
