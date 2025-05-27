@@ -1,7 +1,7 @@
+import type { Config } from "tailwindcss";
+import { fontFamily } from "tailwindcss/defaultTheme";
 
-import type { Config } from "tailwind-config";
-
-export default {
+const config = {
   darkMode: ["class"],
   content: [
     "./pages/**/*.{ts,tsx}",
@@ -20,6 +20,18 @@ export default {
     },
     extend: {
       colors: {
+        'vox-primary': {
+          DEFAULT: '#0B9488',
+          light: '#2CD4BF',
+        },
+        'vox-secondary': {
+          DEFAULT: '#001040',
+          light: '#0034CF',
+        },
+        'vox-accent': {
+          DEFAULT: '#F59E08',
+          light: '#FFD80F',
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -76,6 +88,10 @@ export default {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      fontFamily: {
+        sans: ["Montserrat", ...fontFamily.sans],
+        heading: ["Darker Grotesque", ...fontFamily.sans],
+      },
       keyframes: {
         "accordion-down": {
           from: { height: "0" },
@@ -114,3 +130,5 @@ export default {
   },
   plugins: [require("tailwindcss-animate")],
 } satisfies Config;
+
+export default config;

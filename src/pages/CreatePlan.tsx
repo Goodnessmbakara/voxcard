@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
@@ -82,12 +81,12 @@ const CreatePlan = () => {
   return (
     <Layout>
       <div className="container py-8 max-w-3xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6">Create New Savings Plan</h1>
+        <h1 className="text-3xl font-heading font-bold mb-6 text-vox-secondary">Create New Savings Plan</h1>
 
         <Card>
           <CardHeader>
-            <CardTitle>Plan Details</CardTitle>
-            <CardDescription>
+            <CardTitle className="font-heading text-vox-primary">Plan Details</CardTitle>
+            <CardDescription className="text-vox-secondary/80 font-sans">
               Define your savings circle parameters. Once created, the plan will be visible to potential 
               participants but will only start when the required number of members join.
             </CardDescription>
@@ -274,12 +273,8 @@ const CreatePlan = () => {
                     <Button type="button" variant="outline" onClick={() => navigate(-1)} className="flex-1">
                       Cancel
                     </Button>
-                    <Button 
-                      type="submit" 
-                      disabled={isSubmitting} 
-                      className="bg-ajo-primary hover:bg-ajo-secondary text-white flex-1"
-                    >
-                      {isSubmitting ? "Creating Plan..." : "Create Plan"}
+                    <Button type="submit" disabled={isSubmitting} className="gradient-bg text-white font-sans hover:opacity-90 transition-opacity w-full mt-4">
+                      {isSubmitting ? 'Creating...' : 'Create Plan'}
                     </Button>
                   </div>
                 </div>

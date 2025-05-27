@@ -1,5 +1,5 @@
-
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Dialog,
   DialogContent,
@@ -25,16 +25,10 @@ interface JoinPlanModalProps {
 
 export const JoinPlanModal = ({ planName, planId, open, onClose }: JoinPlanModalProps) => {
   const { toast } = useToast();
-  const {
-
-    isConnected,
-
-
-
-  } = useCardano();
-
+  const { isConnected } = useCardano();
   const [sponsor, setSponsor] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate();
 
   // Handle the join plan request
   const handleSubmit = async () => {
@@ -58,22 +52,16 @@ export const JoinPlanModal = ({ planName, planId, open, onClose }: JoinPlanModal
 
     setIsSubmitting(true);
 
-    // Execute blockchain transaction for join request with 0.5 ADA fee
-    // const transactionSuccess = await openWalletForTransaction(
-    //   0.5,
-    //   `Join request for ${planName}`,
-    //   planId
-    // );
+    // Simulate blockchain transaction for join request
+    await new Promise((resolve) => setTimeout(resolve, 1500));
 
-    // if (transactionSuccess) {
-    //   toast({
-    //     title: "Join request submitted!",
-    //     description: `Your request to join ${planName} has been submitted. Members will now vote on your request.`,
-    //   });
-    //   onClose();
-    // }pu
-
+    toast({
+      title: "Join request submitted!",
+      description: `Your request to join ${planName} has been submitted. Members will now vote on your request.`,
+    });
     setIsSubmitting(false);
+    onClose();
+    navigate('/dashboard');
   };
 
   return (

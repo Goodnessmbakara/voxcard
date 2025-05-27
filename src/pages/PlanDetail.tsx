@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
@@ -92,10 +91,10 @@ const PlanDetail = () => {
     return (
       <Layout>
         <div className="container py-16 text-center">
-          <h1 className="text-3xl font-bold mb-4">Plan not found</h1>
-          <p className="mb-8">The savings plan you're looking for doesn't exist.</p>
+          <h1 className="text-3xl font-heading font-bold mb-4 text-vox-secondary">Plan not found</h1>
+          <p className="mb-8 text-vox-secondary/70 font-sans">The savings plan you're looking for doesn't exist.</p>
           <Link to="/plans">
-            <Button>Browse Other Plans</Button>
+            <Button className="gradient-bg text-white font-sans hover:opacity-90 transition-opacity">Browse Other Plans</Button>
           </Link>
         </div>
       </Layout>
@@ -107,8 +106,8 @@ const PlanDetail = () => {
       <div className="container py-8">
         {/* Plan Header */}
         <div className="mb-8">
-          <div className="flex items-center gap-2 text-gray-500 mb-2">
-            <Link to="/plans" className="hover:text-ajo-primary">Plans</Link>
+          <div className="flex items-center gap-2 text-vox-secondary/60 mb-2 font-sans">
+            <Link to="/plans" className="hover:text-vox-primary transition-colors">Plans</Link>
             <span>/</span>
             <span className="truncate">{plan.name}</span>
           </div>
@@ -116,17 +115,17 @@ const PlanDetail = () => {
           <div className="flex flex-col md:flex-row justify-between md:items-center">
             <div>
               <div className="flex items-center gap-3">
-                <h1 className="text-3xl font-bold">{plan.name}</h1>
-                <span className="px-3 py-1 rounded-full text-sm font-medium bg-ajo-light text-ajo-tertiary">
+                <h1 className="text-3xl font-heading font-bold text-vox-secondary">{plan.name}</h1>
+                <span className="px-3 py-1 rounded-full text-sm font-medium bg-vox-primary/10 text-vox-primary capitalize">
                   {plan.status}
                 </span>
               </div>
-              <p className="text-gray-600 mt-2">{plan.description}</p>
+              <p className="text-vox-secondary/70 mt-2 font-sans">{plan.description}</p>
             </div>
 
             {!isParticipant && plan.status === 'Open' && (
               <Button
-                className="mt-4 md:mt-0 bg-ajo-primary hover:bg-ajo-secondary text-white"
+                className="mt-4 md:mt-0 gradient-bg text-white font-sans hover:opacity-90 transition-opacity"
                 onClick={handleJoinPlan}
               >
                 Request to Join
@@ -134,7 +133,7 @@ const PlanDetail = () => {
             )}
 
             {isParticipant && (
-              <div className="mt-4 md:mt-0 flex items-center gap-2 bg-green-100 text-green-800 px-3 py-2 rounded-md">
+              <div className="mt-4 md:mt-0 flex items-center gap-2 bg-green-100 text-green-800 px-3 py-2 rounded-md font-sans">
                 <Check size={16} />
                 <span>You're a participant</span>
               </div>
@@ -148,21 +147,21 @@ const PlanDetail = () => {
           <div className="lg:col-span-1 space-y-6">
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle>Plan Details</CardTitle>
+                <CardTitle className="font-heading text-vox-primary">Plan Details</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-500">Contribution</p>
-                    <p className="font-bold text-lg">{plan.contributionAmount} ADA</p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-sm text-vox-secondary/60 font-sans">Contribution</p>
+                    <p className="font-bold text-lg text-vox-secondary">{plan.contributionAmount} ADA</p>
+                    <p className="text-xs text-vox-secondary/60 font-sans">
                       {plan.frequency.toLowerCase()}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Duration</p>
-                    <p className="font-bold text-lg">{plan.duration}</p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-sm text-vox-secondary/60 font-sans">Duration</p>
+                    <p className="font-bold text-lg text-vox-secondary">{plan.duration}</p>
+                    <p className="text-xs text-vox-secondary/60 font-sans">
                       {plan.duration === 1 ? 'month' : 'months'}
                     </p>
                   </div>
@@ -171,34 +170,36 @@ const PlanDetail = () => {
                 <div className="pt-2">
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center">
-                      <Users size={16} className="text-gray-500 mr-1" />
-                      <span className="text-sm text-gray-500">
+                      <Users size={16} className="text-vox-secondary/40 mr-1" />
+                      <span className="text-sm text-vox-secondary/60 font-sans">
                         {plan.currentParticipants}/{plan.totalParticipants} participants
                       </span>
                     </div>
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm text-vox-secondary/60 font-sans">
                       {participationRate.toFixed(0)}%
                     </span>
                   </div>
-                  <Progress value={participationRate} className="h-2" />
+                  <Progress value={participationRate} className="h-2 bg-vox-primary/10" />
                 </div>
 
                 <div className="flex items-center justify-between pt-2">
                   <div className="flex items-center">
-                    <Calendar size={16} className="text-gray-500 mr-1" />
-                    <span className="text-sm text-gray-500">Created</span>
+                    <Calendar size={16} className="text-vox-secondary/40 mr-1" />
+                    <span className="text-sm text-vox-secondary/60 font-sans">Created</span>
                   </div>
-                  <span className="text-sm font-medium">
+                  <span className="text-sm font-medium text-vox-secondary font-sans">
                     {plan.createdAt.toLocaleDateString()}
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
-                    <Users size={16} className="text-gray-500 mr-1" />
-                    <span className="text-sm text-gray-500">Initiator</span>
+                    <Users size={16} className="text-vox-secondary/40 mr-1" />
+                    <span className="text-sm text-vox-secondary/60 font-sans">Initiator</span>
                   </div>
-                  <span className="text-sm font-medium">{plan.initiator}</span>
+                  <span className="text-sm font-medium text-vox-secondary font-sans">
+                    {plan.initiator}
+                  </span>
                 </div>
 
                 <div className="flex items-center justify-between">
