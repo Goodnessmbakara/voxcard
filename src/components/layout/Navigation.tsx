@@ -6,6 +6,7 @@ import { useCardano, ConnectWalletList, ConnectWalletButton } from "@cardano-fou
 import { toast } from "sonner";
 import { Toast } from "@radix-ui/react-toast";
 import { useState, useRef, useEffect } from "react";
+import { shortenAddress } from "@/services/utils";
 import { VoxCardLogo } from "@/components/shared/VoxCardLogo";
 
 export const Navigation = () => {
@@ -18,12 +19,15 @@ export const Navigation = () => {
     connect,
     disconnect,
     accountBalance,
-    cip45Address
+    cip45Address, usedAddresses, unusedAddresses,
   } = useCardano();
   
   const [showDisconnect, setShowDisconnect] = useState(false);
   const disconnectMenuRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+
+
+//   console.log(usedAddresses, unusedAddresses); debugging addresses
 
   useEffect(() => {
     if (!showDisconnect) return;
@@ -42,6 +46,7 @@ export const Navigation = () => {
   const onSign = () => {
     // Handle message signing
   };
+
 
   return (
     <nav className="bg-white border-b border-gray-100 sticky top-0 z-50 backdrop-blur-sm bg-white/80">
@@ -76,7 +81,7 @@ export const Navigation = () => {
                   toast.success("Wallet connect successful");
                   navigate("/dashboard");
                 }}
-                className="gradient-bg text-white hover:opacity-90 transition-opacity"
+            //   className here doesn't need it
               />
             ) : (
               <div className="relative" ref={disconnectMenuRef}>
@@ -87,7 +92,14 @@ export const Navigation = () => {
                 >
                   <span>{accountBalance} ADA</span>
                   <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse mr-2"></span>
-                  {stakeAddress?.slice(0, 6)}...{stakeAddress?.slice(-4)}
+                  {/* {stakeAddress?.slice(0, 6)}...{stakeAddress?.slice(-4)} stake address cannot receive payment of ADA */}
+				  {stakeAddress ? (
+					<span className="ml-2">
+					  {usedAddresses.length > 0 ? shortenAddress(usedAddresses[0]) : shortenAddress(unusedAddresses[0])}
+					</span>
+				  ) : (
+					<span className="ml-2">No Address</span>
+				  )}
                 </Button>
 
                 {showDisconnect && (
@@ -116,11 +128,6 @@ export const Navigation = () => {
                 <div className="flex flex-col h-full">
                   <div className="flex items-center justify-between mb-8">
                     <VoxCardLogo variant="full" size="md" linkTo="/" />
-                    <SheetTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <X className="h-6 w-6 text-vox-secondary" />
-                      </Button>
-                    </SheetTrigger>
                   </div>
 
                   <nav className="space-y-4">
@@ -159,7 +166,7 @@ export const Navigation = () => {
                           toast.success("Wallet connect successful");
                           navigate("/dashboard");
                         }}
-                        className="w-full gradient-bg text-white hover:opacity-90 transition-opacity"
+                        // className="w-full gradient-bg text-white hover:opacity-90 transition-opacity"
                       />
                     ) : (
                       <div className="space-y-2">
@@ -168,7 +175,14 @@ export const Navigation = () => {
                           className="w-full border-vox-primary text-vox-primary hover:bg-vox-primary/10 font-sans"
                         >
                           <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse mr-2"></span>
-                          {stakeAddress?.slice(0, 6)}...{stakeAddress?.slice(-4)}
+                          {/* {stakeAddress?.slice(0, 6)}...{stakeAddress?.slice(-4)} */}
+						  {stakeAddress ? (
+								<span className="ml-2">
+								{usedAddresses.length > 0 ? shortenAddress(usedAddresses[0]) : shortenAddress(unusedAddresses[0])}
+								</span>
+							) : (
+								<span className="ml-2">No Address</span>
+							)}
                         </Button>
                         <Button
                           onClick={disconnect}

@@ -11,6 +11,7 @@ import { Link } from 'react-router-dom';
 import { Calendar, Clock, Plus, Wallet, Copy, LogOut, RefreshCw, ExternalLink, PenTool } from 'lucide-react';
 import { useCardano, ConnectWalletButton } from '@cardano-foundation/cardano-connect-with-wallet';
 import { motion, AnimatePresence } from 'framer-motion';
+import { shortenAddress, getAddressString } from '@/services/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 
 const explorerUrl = (address: string) => `https://cardanoscan.io/address/${address}`;
@@ -19,7 +20,10 @@ const ManageWalletModal = ({ open, onClose }: { open: boolean; onClose: () => vo
   const {
     enabledWallet,
     stakeAddress,
+	usedAddresses,
+	unusedAddresses,
     accountBalance,
+	cip45Address,
     disconnect,
     connect,
     signMessage,
@@ -28,9 +32,18 @@ const ManageWalletModal = ({ open, onClose }: { open: boolean; onClose: () => vo
   const [signing, setSigning] = useState(false);
   const [signResult, setSignResult] = useState<string | null>(null);
 
+
+  const walletAddress =
+  usedAddresses.length > 0
+    ? getAddressString(usedAddresses[0])
+    : unusedAddresses.length > 0
+    ? getAddressString(unusedAddresses[0])
+    : getAddressString(cip45Address || stakeAddress || "");
+
+
   const handleCopy = () => {
-    if (stakeAddress) {
-      navigator.clipboard.writeText(stakeAddress);
+    if (walletAddress) {
+      navigator.clipboard.writeText(walletAddress);
       setCopied(true);
       setTimeout(() => setCopied(false), 1200);
     }
@@ -41,7 +54,8 @@ const ManageWalletModal = ({ open, onClose }: { open: boolean; onClose: () => vo
     setSignResult(null);
     try {
       const result = await signMessage('Sign this message to verify your wallet.');
-      setSignResult(result);
+      setSignResult('Signature successful.');
+    //   setSignResult(result);  will be updated to handle the result properly	
     } catch (e) {
       setSignResult('Signature cancelled or failed.');
     }
@@ -61,7 +75,7 @@ const ManageWalletModal = ({ open, onClose }: { open: boolean; onClose: () => vo
           <div className="flex items-center justify-between">
             <div>
               <div className="text-sm text-gray-500">Wallet</div>
-              <div className="font-semibold text-vox-primary">{enabledWallet?.name || 'Unknown'}</div>
+              <div className="font-semibold text-vox-primary">{enabledWallet?.toUpperCase() || 'Unknown'}</div>
             </div>
             <div className="text-right">
               <div className="text-sm text-gray-500">Balance</div>
@@ -69,7 +83,9 @@ const ManageWalletModal = ({ open, onClose }: { open: boolean; onClose: () => vo
             </div>
           </div>
           <div className="flex items-center gap-2 bg-gray-50 rounded px-3 py-2">
-            <span className="font-mono text-xs break-all">{stakeAddress}</span>
+            <span className="font-mono text-xs break-all">
+				{ walletAddress ? walletAddress : 'No Address Connected' }
+			</span>
             <Button size="icon" variant="ghost" onClick={handleCopy} className="ml-1">
               <Copy size={16} className={copied ? 'text-vox-accent' : ''} />
             </Button>
@@ -77,7 +93,7 @@ const ManageWalletModal = ({ open, onClose }: { open: boolean; onClose: () => vo
           </div>
           <div className="flex flex-col gap-2">
             <a
-              href={stakeAddress ? explorerUrl(stakeAddress) : '#'}
+              href={walletAddress ? explorerUrl(walletAddress) : '#'}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 text-vox-primary hover:underline text-sm"
@@ -89,7 +105,7 @@ const ManageWalletModal = ({ open, onClose }: { open: boolean; onClose: () => vo
               className="w-full flex items-center gap-2 border-vox-primary text-vox-primary hover:bg-vox-primary/10"
               onClick={async () => {
                 await disconnect();
-                setTimeout(() => connect(), 300);
+                setTimeout(() => connect(enabledWallet), 300);
               }}
             >
               <RefreshCw size={16} /> Switch Wallet
@@ -123,7 +139,12 @@ const ManageWalletModal = ({ open, onClose }: { open: boolean; onClose: () => vo
 };
 
 const Dashboard = () => {
-  const { isConnected } = useCardano();
+  const { 
+	isConnected,
+	stakeAddress,
+	usedAddresses,
+	unusedAddresses 
+	} = useCardano();
   const [activeTab, setActiveTab] = useState('overview');
   const [showWalletModal, setShowWalletModal] = useState(false);
 
@@ -180,7 +201,7 @@ const Dashboard = () => {
                 </p>
                 <ConnectWalletButton
                   message="Please sign Augusta Ada King, Countess of Lovelace"
-                  className="w-full gradient-bg text-white font-sans py-3 text-lg rounded-lg shadow-lg hover:opacity-90 transition-all"
+                //   className="w-full gradient-bg text-white font-sans py-3 text-lg rounded-lg shadow-lg hover:opacity-90 transition-all"
                 />
               </motion.div>
             </motion.div>
@@ -204,7 +225,15 @@ const Dashboard = () => {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-sm text-vox-secondary/60 font-sans">Wallet Address</p>
-                          <p className="font-mono text-sm font-medium text-vox-secondary">{user.walletAddress}</p>
+                          <p className="font-mono text-sm font-medium text-vox-secondary">
+							{stakeAddress ? (
+								<span className="ml-2">
+								{usedAddresses.length > 0 ? shortenAddress(usedAddresses[0]) : shortenAddress(unusedAddresses[0])}
+								</span>
+							) : (
+								<span className="ml-2">No Address</span>
+							)}
+						</p>
                         </div>
                         <TrustScoreBadge score={user.trustScore} />
                       </div>
