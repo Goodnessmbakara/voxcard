@@ -231,7 +231,7 @@ const PlanDetail = () => {
                   <div>
                     <p className="text-sm text-gray-500">Current Round</p>
                     <div className="flex items-center">
-                      <div className="h-8 w-8 rounded-full bg-ajo-light flex items-center justify-center text-ajo-tertiary font-medium">
+                      <div className="h-8 w-8 rounded-full bg-[#E5E7EB] flex items-center justify-center text-ajo-tertiary font-medium">
                         1
                       </div>
                       <span className="ml-2 font-medium">of {plan.totalParticipants}</span>
@@ -406,7 +406,7 @@ const PlanDetail = () => {
                             }`}
                         >
                           <div className="flex items-center">
-                            <div className="h-8 w-8 rounded-full bg-ajo-primary flex items-center justify-center text-white font-medium">
+                            <div className="h-8 w-8 rounded-full bg-[#E5E7EB] flex items-center justify-center text-[##5ba88e] font-medium">
                               {payout.round}
                             </div>
                             <div className="ml-3">

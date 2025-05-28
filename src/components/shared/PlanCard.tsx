@@ -29,7 +29,7 @@ export const PlanCard = ({ plan, isParticipant = false }: PlanCardProps) => {
             <CardTitle className="text-lg md:text-xl">{plan.name}</CardTitle>
             <CardDescription className="text-sm mt-1">{plan.description}</CardDescription>
           </div>
-          <div className="px-3 py-1 rounded-full text-xs font-medium bg-ajo-light text-ajo-tertiary">
+          <div className="px-3 py-1 rounded-full text-xs font-medium bg-[#5ba88e] text-white">
             {plan.status}
           </div>
         </div>
@@ -75,10 +75,10 @@ export const PlanCard = ({ plan, isParticipant = false }: PlanCardProps) => {
           </Link>
         ) : plan.status === 'Open' ? (
           <Link to={`/plans/${plan.id}`} className="w-full">
-            <Button className="w-full bg-ajo-primary hover:bg-ajo-secondary text-white">Join Plan</Button>
+            <Button className="w-full bg-[#10B981] hover:bg-[#5ba88e] text-white">Join Plan</Button>
           </Link>
         ) : (
-          <Button disabled className="w-full">Plan {plan.status}</Button>
+          <Button disabled className="w-full bg-[#5ba88e]">Plan {plan.status}</Button>
         )}
       </CardFooter>
     </Card>

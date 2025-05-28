@@ -92,6 +92,7 @@ export interface Plan {
       createdAt: new Date('2025-04-10'),
       allowPartial: true,
     },
+	
   ];
   
   // Generate mock users

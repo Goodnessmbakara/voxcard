@@ -16,7 +16,7 @@ export const TrustScoreBadge = ({
 }: TrustScoreBadgeProps) => {
   // Determine color based on score
   const getColor = () => {
-    if (score >= 90) return 'bg-green-500';
+    if (score >= 90) return 'bg-[#10B981]';
     if (score >= 75) return 'bg-emerald-500';
     if (score >= 60) return 'bg-yellow-500';
     if (score >= 40) return 'bg-orange-500';
