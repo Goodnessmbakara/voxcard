@@ -32,7 +32,7 @@ const Layout = ({ children }: LayoutProps) => {
         {children}
       </main>
       <footer className="relative bg-gradient-to-tr from-vox-primary to-vox-secondary text-white pt-10 pb-6 mt-8">
-        <div className="container mx-auto px-4 flex flex-col md:flex-row items-center md:items-start justify-between gap-8">
+        <div className="container mx-auto px-4 flex flex-row item-start text-sm md:items-start justify-between gap-8">
           <div className="flex flex-col items-center md:items-start mb-6 md:mb-0">
             <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} transition={{ duration: 0.6, type: 'spring' }}>
               <span className="font-heading text-2xl font-bold tracking-tight">VoxCard</span>

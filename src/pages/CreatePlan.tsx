@@ -269,11 +269,11 @@ const CreatePlan = () => {
                     </p>
                   </div>
                   
-                  <div className="flex flex-col sm:flex-row gap-3">
+                  <div className="flex flex-col items-center sm:flex-row gap-3">
                     <Button type="button" variant="outline" onClick={() => navigate(-1)} className="flex-1">
                       Cancel
                     </Button>
-                    <Button type="submit" disabled={isSubmitting} className="gradient-bg text-white font-sans hover:opacity-90 transition-opacity w-full mt-4">
+                    <Button type="submit" disabled={isSubmitting} className="gradient-bg text-white font-sans hover:opacity-90 transition-opacity w-full">
                       {isSubmitting ? 'Creating...' : 'Create Plan'}
                     </Button>
                   </div>
