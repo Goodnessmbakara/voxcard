@@ -84,7 +84,7 @@ const Plans = () => {
 
         {/* Results */}
         <AnimatePresence>
-          {filteredPlans.length > 0 ? (
+        {filteredPlans.length > 0 ? (
             <motion.div
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
               initial="hidden"
@@ -98,7 +98,7 @@ const Plans = () => {
                 },
               }}
             >
-              {filteredPlans.map((plan) => (
+            {filteredPlans.map((plan) => (
                 <motion.div
                   key={plan.id}
                   initial={{ opacity: 0, y: 30 }}
@@ -108,9 +108,9 @@ const Plans = () => {
                 >
                   <PlanCard plan={plan} />
                 </motion.div>
-              ))}
+            ))}
             </motion.div>
-          ) : (
+        ) : (
             <motion.div
               className="text-center py-16"
               initial={{ opacity: 0, y: 20 }}
@@ -120,13 +120,13 @@ const Plans = () => {
             >
               <h3 className="text-xl font-heading font-semibold mb-2 text-vox-secondary">No plans found</h3>
               <p className="text-vox-secondary/70 mb-6 font-sans">Try changing your search or filter criteria.</p>
-              <Link to="/create-plan">
+            <Link to="/create-plan">
                 <Button className="gradient-bg text-white font-sans hover:opacity-90 transition-opacity">
-                  Create a new plan
-                </Button>
-              </Link>
+                Create a new plan
+              </Button>
+            </Link>
             </motion.div>
-          )}
+        )}
         </AnimatePresence>
       </div>
     </Layout>

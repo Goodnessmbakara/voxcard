@@ -6,6 +6,9 @@ export interface Plan {
     totalParticipants: number;
     currentParticipants: number;
     contributionAmount: number;
+    maxMembers: number;
+    members: string[];
+    contributions: string[];
     frequency: 'Daily' | 'Weekly' | 'Biweekly' | 'Monthly';
     duration: number; // in months
     totalAmount: number;
@@ -51,7 +54,10 @@ export interface Plan {
       initiator: 'Ahmed',
       totalParticipants: 12,
       currentParticipants: 8,
+      members: ['user-1', 'user-2'],
       contributionAmount: 100,
+      contributions: ['contrib-1', 'contrib-2'],
+      maxMembers: 12,
       frequency: 'Monthly',
       duration: 12,
       totalAmount: 12 * 100 * 12,
@@ -66,6 +72,9 @@ export interface Plan {
       description: 'Weekly contributions to help members start small businesses.',
       initiator: 'Ngozi',
       totalParticipants: 8,
+      maxMembers: 8,
+      contributions: ['contrib-3', 'contrib-4'],
+      members: ['user-1', 'user-2'],
       currentParticipants: 8,
       contributionAmount: 50,
       frequency: 'Weekly',
@@ -83,7 +92,10 @@ export interface Plan {
       initiator: 'Kofi',
       totalParticipants: 6,
       currentParticipants: 4,
+      contributions: ['contrib-3', 'contrib-4'],
       contributionAmount: 75,
+      maxMembers: 6,
+      members: ['user-1', 'user-2'],
       frequency: 'Biweekly',
       duration: 3,
       totalAmount: 3 * 2 * 75 * 6,

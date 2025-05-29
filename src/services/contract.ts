@@ -1,5 +1,5 @@
-import { useCardano } from '@cardano-foundation/cardano-connect-with-wallet';
-import { Plan } from '@/lib/mock-data';
+import { useWallet } from '@cardano-foundation/cardano-connect-with-wallet';
+import { Plan } from '../lib/mock-data';
 
 // Smart contract parameters
 interface ContractParams {
@@ -24,10 +24,10 @@ interface ContractDeployment {
 // Contract service class
 export class ContractService {
   private static instance: ContractService;
-  private apiUrl: string;
+  private wallet: any;
 
   private constructor() {
-    this.apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
+    this.wallet = useWallet();
   }
 
   public static getInstance(): ContractService {
@@ -38,9 +38,19 @@ export class ContractService {
   }
 
   // Deploy a new savings plan contract
-  async deployContract(params: ContractParams): Promise<ContractDeployment> {
+  async deployContract(plan: Plan): Promise<{ address: string; txHash: string }> {
     try {
-      const response = await fetch(`${this.apiUrl}/contracts/deploy`, {
+      // Convert plan to contract parameters
+      const params = {
+        planName: plan.name,
+        targetAmount: plan.targetAmount,
+        contributionAmount: plan.contributionAmount,
+        duration: plan.duration,
+        maxMembers: plan.maxMembers
+      };
+
+      // Call the contract's create endpoint
+      const response = await fetch('http://localhost:3001/api/contracts/deploy', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -52,22 +62,24 @@ export class ContractService {
         throw new Error('Failed to deploy contract');
       }
 
-      return await response.json();
+      const result = await response.json();
+      return {
+        address: result.address,
+        txHash: result.txHash
+      };
     } catch (error) {
-      console.error('Contract deployment error:', error);
+      console.error('Error deploying contract:', error);
       throw error;
     }
   }
 
   // Get contract details
-  async getContractDetails(contractAddress: string): Promise<any> {
+  async getContractDetails(address: string): Promise<any> {
     try {
-      const response = await fetch(`${this.apiUrl}/contracts/${contractAddress}`);
-      
+      const response = await fetch(`http://localhost:3001/api/contracts/${address}`);
       if (!response.ok) {
         throw new Error('Failed to fetch contract details');
       }
-
       return await response.json();
     } catch (error) {
       console.error('Error fetching contract details:', error);
@@ -76,13 +88,9 @@ export class ContractService {
   }
 
   // Submit a contribution to the contract
-  async submitContribution(
-    contractAddress: string,
-    amount: number,
-    roundNumber: number
-  ): Promise<{ transactionHash: string }> {
+  async submitContribution(address: string, amount: number, roundNumber: number): Promise<{ txHash: string }> {
     try {
-      const response = await fetch(`${this.apiUrl}/contracts/${contractAddress}/contribute`, {
+      const response = await fetch(`http://localhost:3001/api/contracts/${address}/contribute`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -96,18 +104,15 @@ export class ContractService {
 
       return await response.json();
     } catch (error) {
-      console.error('Contribution error:', error);
+      console.error('Error submitting contribution:', error);
       throw error;
     }
   }
 
   // Join a savings plan
-  async joinPlan(
-    contractAddress: string,
-    userAddress: string
-  ): Promise<{ transactionHash: string }> {
+  async joinPlan(address: string, userAddress: string): Promise<{ txHash: string }> {
     try {
-      const response = await fetch(`${this.apiUrl}/contracts/${contractAddress}/join`, {
+      const response = await fetch(`http://localhost:3001/api/contracts/${address}/join`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -121,7 +126,7 @@ export class ContractService {
 
       return await response.json();
     } catch (error) {
-      console.error('Join plan error:', error);
+      console.error('Error joining plan:', error);
       throw error;
     }
   }
@@ -129,7 +134,7 @@ export class ContractService {
 
 // Hook to use the contract service
 export const useContract = () => {
-  const { isConnected, stakeAddress } = useCardano();
+  const { isConnected, stakeAddress } = useWallet();
   const contractService = ContractService.getInstance();
 
   return {
@@ -152,7 +157,7 @@ export const useContract = () => {
         initiatorAddress: stakeAddress,
       };
 
-      return await contractService.deployContract(params);
+      return await contractService.deployContract(plan);
     },
     getContractDetails: contractService.getContractDetails.bind(contractService),
     submitContribution: contractService.submitContribution.bind(contractService),
