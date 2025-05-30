@@ -1,33 +1,27 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, X } from "lucide-react";
-import { useCardano, ConnectWalletList, ConnectWalletButton } from "@cardano-foundation/cardano-connect-with-wallet";
-import { toast } from "sonner";
-import { Toast } from "@radix-ui/react-toast";
+import { Menu } from "lucide-react";
+import { ConnectWalletButton } from "@cardano-foundation/cardano-connect-with-wallet";
 import { useState, useRef, useEffect } from "react";
 import { shortenAddress } from "@/services/utils";
 import { VoxCardLogo } from "@/components/shared/VoxCardLogo";
+import { useCardanoWallet } from "@/contexts/CardanoWalletContext";
 
 export const Navigation = () => {
   const {
-    isEnabled,
     isConnected,
-    enabledWallet,
     stakeAddress,
-    signMessage,
+    accountBalance,
+    usedAddresses,
+    unusedAddresses,
     connect,
     disconnect,
-    accountBalance,
-    cip45Address, usedAddresses, unusedAddresses,
-  } = useCardano();
+  } = useCardanoWallet();
   
   const [showDisconnect, setShowDisconnect] = useState(false);
   const disconnectMenuRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-
-
-//   console.log(usedAddresses, unusedAddresses); debugging addresses
 
   useEffect(() => {
     if (!showDisconnect) return;
@@ -42,11 +36,6 @@ export const Navigation = () => {
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, [showDisconnect]);
-
-  const onSign = () => {
-    // Handle message signing
-  };
-
 
   return (
     <nav className="bg-white border-b border-gray-100 sticky top-0 z-50 backdrop-blur-sm bg-white/80">
@@ -76,12 +65,7 @@ export const Navigation = () => {
             {!isConnected ? (
               <ConnectWalletButton
                 message="Please sign Augusta Ada King, Countess of Lovelace"
-                onSignMessage={onSign}
-                onConnect={() => {
-                  toast.success("Wallet connect successful");
-                  navigate("/dashboard");
-                }}
-            //   className here doesn't need it
+                onConnect={connect}
               />
             ) : (
               <div className="relative" ref={disconnectMenuRef}>
@@ -92,14 +76,13 @@ export const Navigation = () => {
                 >
                   <span>{accountBalance} ADA</span>
                   <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse mr-2"></span>
-                  {/* {stakeAddress?.slice(0, 6)}...{stakeAddress?.slice(-4)} stake address cannot receive payment of ADA */}
-				  {stakeAddress ? (
-					<span className="ml-2">
-					  {usedAddresses.length > 0 ? shortenAddress(usedAddresses[0]) : shortenAddress(unusedAddresses[0])}
-					</span>
-				  ) : (
-					<span className="ml-2">No Address</span>
-				  )}
+                  {stakeAddress ? (
+                    <span className="ml-2">
+                      {usedAddresses.length > 0 ? shortenAddress(usedAddresses[0]) : shortenAddress(unusedAddresses[0])}
+                    </span>
+                  ) : (
+                    <span className="ml-2">No Address</span>
+                  )}
                 </Button>
 
                 {showDisconnect && (
@@ -161,12 +144,7 @@ export const Navigation = () => {
                     {!isConnected ? (
                       <ConnectWalletButton
                         message="Please sign Augusta Ada King, Countess of Lovelace"
-                        onSignMessage={onSign}
-                        onConnect={() => {
-                          toast.success("Wallet connect successful");
-                          navigate("/dashboard");
-                        }}
-                        // className="w-full gradient-bg text-white hover:opacity-90 transition-opacity"
+                        onConnect={connect}
                       />
                     ) : (
                       <div className="space-y-2">
@@ -175,14 +153,13 @@ export const Navigation = () => {
                           className="w-full border-vox-primary text-vox-primary hover:bg-vox-primary/10 font-sans"
                         >
                           <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse mr-2"></span>
-                          {/* {stakeAddress?.slice(0, 6)}...{stakeAddress?.slice(-4)} */}
-						  {stakeAddress ? (
-								<span className="ml-2">
-								{usedAddresses.length > 0 ? shortenAddress(usedAddresses[0]) : shortenAddress(unusedAddresses[0])}
-								</span>
-							) : (
-								<span className="ml-2">No Address</span>
-							)}
+                          {stakeAddress ? (
+                            <span className="ml-2">
+                              {usedAddresses.length > 0 ? shortenAddress(usedAddresses[0]) : shortenAddress(unusedAddresses[0])}
+                            </span>
+                          ) : (
+                            <span className="ml-2">No Address</span>
+                          )}
                         </Button>
                         <Button
                           onClick={disconnect}

@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
+import { CardanoWalletProvider } from "@/contexts/CardanoWalletContext";
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import Plans from "./pages/Plans";
@@ -15,14 +16,13 @@ import About from './pages/About';
 const queryClient = new QueryClient();
 
 const App = () => {
-
-
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <CardanoWalletProvider>
             <AnimatePresence mode="wait">
               <Routes>
                 <Route path="/" element={<Home />} />
@@ -35,9 +35,11 @@ const App = () => {
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </AnimatePresence>
-          </BrowserRouter>
+          </CardanoWalletProvider>
+        </BrowserRouter>
       </TooltipProvider>
-    </QueryClientProvider>)
+    </QueryClientProvider>
+  );
 };
 
 export default App;
