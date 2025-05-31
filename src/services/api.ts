@@ -6,6 +6,81 @@ interface ApiResponse<T> {
   error?: string;
 }
 
+const API_BASE_URL = 'http://localhost:3001																																																																																																																																																																																																																																																														/api';
+
+export interface CreatePlanData {
+  name: string;
+  description: string;
+  maxMembers: number;
+  contributionAmount: number;
+  frequency: 'Daily' | 'Weekly' | 'Monthly';
+  duration: number;
+  trustScoreRequired: number;
+  allowPartial: boolean;
+}
+
+export const planApi = {
+  createPlan: async (planData: CreatePlanData) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/plans`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(planData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create plan');
+      }
+
+      return await response.json();
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('An unexpected error occurred');
+    }
+  },
+
+  getAllPlans: async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/plans`);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch plans');
+      }
+
+      return await response.json();
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('An unexpected error occurred');
+    }
+  },
+
+  getPlanById: async (id: string) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/plans/${id}`);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch plan');
+      }
+
+      return await response.json();
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('An unexpected error occurred');
+    }
+  }
+};
+
 // API service class
 export class ApiService {
   private static instance: ApiService;
@@ -128,4 +203,5 @@ export const useApi = () => {
     updatePlan: apiService.updatePlan.bind(apiService),
     deletePlan: apiService.deletePlan.bind(apiService),
   };
-}; 
+};
+

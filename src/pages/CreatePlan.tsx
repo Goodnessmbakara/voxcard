@@ -29,6 +29,7 @@ import { emptyPlan } from '@/lib/mock-data';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
+import { planApi } from '@/services/api';
 
 // Form schema with validation
 const formSchema = z.object({
@@ -36,7 +37,7 @@ const formSchema = z.object({
   description: z.string().min(10, { message: 'Please provide a more detailed description' }).max(500),
   totalParticipants: z.number().min(2).max(100),
   contributionAmount: z.number().min(10).max(100000),
-  frequency: z.enum(['Daily', 'Weekly', 'Biweekly', 'Monthly']),
+  frequency: z.enum(['Daily', 'Weekly', 'Monthly']),
   duration: z.number().min(1).max(36),
   trustScoreRequired: z.number().min(0).max(100),
   allowPartial: z.boolean().default(false),
@@ -64,18 +65,35 @@ const CreatePlan = () => {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
     
-    // Simulate blockchain interaction
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    
-    console.log('Creating plan with values:', values);
-    
-    toast({
-      title: "Plan created successfully!",
-      description: "Your plan has been created and is now open for participants.",
-    });
-    
-    setIsSubmitting(false);
-    navigate('/dashboard');
+    try {
+      // Create plan using the API
+      const plan = await planApi.createPlan({
+        name: values.name,
+        description: values.description,
+        maxMembers: values.totalParticipants,
+        contributionAmount: values.contributionAmount,
+        frequency: values.frequency,
+        duration: values.duration,
+        trustScoreRequired: values.trustScoreRequired,
+        allowPartial: values.allowPartial,
+      });
+      
+      toast({
+        title: "Plan created successfully!",
+        description: "Your plan has been created and is now open for participants.",
+      });
+      
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Error creating plan:', error);
+      toast({
+        title: "Error creating plan",
+        description: "There was a problem creating your plan. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -189,7 +207,6 @@ const CreatePlan = () => {
                           <SelectContent>
                             <SelectItem value="Daily">Daily</SelectItem>
                             <SelectItem value="Weekly">Weekly</SelectItem>
-                            <SelectItem value="Biweekly">Biweekly</SelectItem>
                             <SelectItem value="Monthly">Monthly</SelectItem>
                           </SelectContent>
                         </Select>
