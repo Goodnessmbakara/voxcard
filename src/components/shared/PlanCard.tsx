@@ -1,4 +1,3 @@
-
 import { Plan } from '@/lib/mock-data';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -12,13 +11,21 @@ interface PlanCardProps {
 }
 
 export const PlanCard = ({ plan, isParticipant = false }: PlanCardProps) => {
-  const participationRate = (plan.currentParticipants / plan.totalParticipants) * 100;
+  const participationRate = (plan.total_participants / plan.max_members) * 100;
   
   const frequencyToText = {
     Daily: 'day',
     Weekly: 'week',
     Biweekly: '2 weeks',
     Monthly: 'month',
+  };
+
+  // Format the date properly
+  const formatDate = (date: string | Date) => {
+    if (typeof date === 'string') {
+      return new Date(date).toLocaleDateString();
+    }
+    return date.toLocaleDateString();
   };
 
   return (
@@ -54,7 +61,7 @@ export const PlanCard = ({ plan, isParticipant = false }: PlanCardProps) => {
           <div className="flex items-center">
             <Users size={16} className="text-gray-500" />
             <span className="text-sm ml-1 text-gray-500">
-              {plan.currentParticipants}/{plan.totalParticipants} participants
+              {plan.total_participants}/{plan.max_members} participants
             </span>
           </div>
           <span className="text-sm text-gray-500">
@@ -65,7 +72,7 @@ export const PlanCard = ({ plan, isParticipant = false }: PlanCardProps) => {
 
         <div className="mt-4 flex items-center text-sm text-gray-500">
           <CalendarIcon size={16} className="mr-1" />
-          <span>Created {plan.createdAt.toLocaleDateString()}</span>
+          <span>Created {formatDate(plan.created_at)}</span>
         </div>
       </CardContent>
       <CardFooter>
