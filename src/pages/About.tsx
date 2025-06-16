@@ -9,7 +9,7 @@ const About = () => {
           <VoxCardLogo size="lg" />
           <h1 className="text-4xl font-heading font-bold text-vox-secondary mt-4 mb-2">About VoxCard</h1>
           <p className="text-lg text-vox-secondary/80 font-sans text-center max-w-xl">
-            VoxCard is a decentralized platform for community savings and rotating credit, inspired by traditional Ajo/Esusu models and powered by Cardano blockchain technology.
+            VoxCard is a decentralized platform for community savings and rotating credit, inspired by traditional Ajo/Esusu models and powered by XION blockchain technology.
           </p>
         </div>
         <div className="space-y-8">
@@ -23,7 +23,7 @@ const About = () => {
             <h2 className="text-2xl font-heading font-semibold text-vox-primary mb-2">How It Works</h2>
             <ul className="list-disc pl-6 text-vox-secondary/80 font-sans space-y-2">
               <li>Anyone can create or join a savings plan (circle).</li>
-              <li>Funds are pooled and managed by Cardano smart contracts.</li>
+              <li>Funds are pooled and managed by XION smart contracts.</li>
               <li>Members take turns receiving the pooled funds, based on trust and schedule.</li>
               <li>All transactions are transparent and verifiable on-chain.</li>
             </ul>

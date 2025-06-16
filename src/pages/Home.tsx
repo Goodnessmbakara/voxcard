@@ -20,7 +20,7 @@ const Home = () => {
               >
                 <span className="gradient-text">Transparent</span> &<br />
                 <span className="gradient-text">Secure</span> Community<br />
-                Savings on Cardano
+                Savings on XION
               </motion.h1>
               
               <motion.p 
@@ -118,7 +118,7 @@ const Home = () => {
           <div className="text-center max-w-3xl mx-auto mb-16">
             <h2 className="text-3xl md:text-4xl font-heading font-bold mb-4">How VoxCard Works</h2>
             <p className="text-lg text-vox-secondary/80 font-sans">
-              VoxCard leverages Cardano's smart contracts to create transparent, secure, and flexible
+              VoxCard leverages XION's smart contracts to create transparent, secure, and flexible
               community savings without middlemen or escrow risk.
             </p>
           </div>

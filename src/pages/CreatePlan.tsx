@@ -281,7 +281,7 @@ const CreatePlan = () => {
                   <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
                     <h3 className="font-medium text-amber-800 mb-1">Important Information</h3>
                     <p className="text-sm text-amber-700">
-                      Creating a plan will require a transaction on the Cardano blockchain. Make sure
+                      Creating a plan will require a transaction on the XION blockchain. Make sure
                       your wallet is connected and has sufficient XION for transaction fees.
                     </p>
                   </div>

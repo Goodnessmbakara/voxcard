@@ -23,7 +23,7 @@ import { Progress } from '@/components/ui/progress';
 import { Calendar, Check, Clock, Clock8, Users } from 'lucide-react';
 import JoinPlanModal from '@/components/modals/JoinPlanModal';
 import ContributeModal from '@/components/modals/ContributeModal';
-import { useCardano } from "@cardano-foundation/cardano-connect-with-wallet";
+import { useCardano } from "@XION-foundation/XION-connect-with-wallet";
 
 
 const PlanDetail = () => {

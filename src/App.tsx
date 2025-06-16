@@ -36,12 +36,14 @@ const App = () => {
 					<Route path="/" element={<Home />} />
 					<Route path="/dashboard" element={<Dashboard />} />
 					<Route path="/create-plan" element={<CreatePlan />} />
+					<Route path="/about" element={<About />} />
+					<Route path="*" element={<NotFound />} />
 					{/* <Route path="/plans" element={<Plans />} />
 					<Route path="/plans/:planId" element={<PlanDetail />} />
 					
-					<Route path="/about" element={<About />} />
+					
 
-					<Route path="*" element={<NotFound />} /> */}
+					 */}
 				</Routes>
 				</AnimatePresence>
 			</AbstraxionProvider>
