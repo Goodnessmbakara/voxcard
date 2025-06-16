@@ -13,6 +13,7 @@ import NotFound from "./pages/NotFound";
 import About from './pages/About';
 import { AbstraxionProvider } from "@burnt-labs/abstraxion";
 
+
 const queryClient = new QueryClient();
 
 const treasuryConfig = {
@@ -33,8 +34,8 @@ const App = () => {
 				<AnimatePresence mode="wait">
 				<Routes>
 					<Route path="/" element={<Home />} />
-					{/* <Route path="/dashboard" element={<Dashboard />} />
-					<Route path="/plans" element={<Plans />} />
+					<Route path="/dashboard" element={<Dashboard />} />
+					{/* <Route path="/plans" element={<Plans />} />
 					<Route path="/plans/:planId" element={<PlanDetail />} />
 					<Route path="/create-plan" element={<CreatePlan />} />
 					<Route path="/about" element={<About />} />

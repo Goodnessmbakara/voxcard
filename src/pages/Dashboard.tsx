@@ -1,45 +1,36 @@
 import { useState } from 'react';
 import Layout from '@/components/layout/Layout';
 import { mockPlans, mockPayouts, getUserPlans, defaultUser } from '@/lib/mock-data';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
+import {
+  Abstraxion,
+  useAbstraxionAccount,
+  useAbstraxionSigningClient,
+  useModal,
+} from "@burnt-labs/abstraxion";
 import PlanCard from '@/components/shared/PlanCard';
 import TrustScoreBadge from '@/components/shared/TrustScoreBadge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Link } from 'react-router-dom';
 import { Calendar, Clock, Plus, Wallet, Copy, LogOut, RefreshCw, ExternalLink, PenTool } from 'lucide-react';
-import { useCardano, ConnectWalletButton } from '@cardano-foundation/cardano-connect-with-wallet';
 import { motion, AnimatePresence } from 'framer-motion';
-import { shortenAddress, getAddressString } from '@/services/utils';
+import { shortenAddress } from '@/services/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Button } from "@burnt-labs/ui";
 
-const explorerUrl = (address: string) => `https://cardanoscan.io/address/${address}`;
+const explorerUrl = (address: string) => `https://www.mintscan.io/xion-testnet/address/${address}`;
 
-const ManageWalletModal = ({ open, onClose }: { open: boolean; onClose: () => void }) => {
-  const {
-    enabledWallet,
-    stakeAddress,
-	usedAddresses,
-	unusedAddresses,
-    accountBalance,
-	cip45Address,
-    disconnect,
-    connect,
-    signMessage,
-  } = useCardano();
+// Mock wallet data for UI
+const mockWallet = {
+  address: "xion1qv9w8...9k3j2h", // Use a realistic mock address
+  balance: 1234.56,
+};
+
+const ManageWalletModal = ({ open, onClose, address }: { open: boolean; onClose: () => void; address: string; }) => {
   const [copied, setCopied] = useState(false);
-  const [signing, setSigning] = useState(false);
-  const [signResult, setSignResult] = useState<string | null>(null);
 
-
-  const walletAddress =
-  usedAddresses.length > 0
-    ? getAddressString(usedAddresses[0])
-    : unusedAddresses.length > 0
-    ? getAddressString(unusedAddresses[0])
-    : getAddressString(cip45Address || stakeAddress || "");
-
+  const walletAddress = address;
 
   const handleCopy = () => {
     if (walletAddress) {
@@ -49,44 +40,25 @@ const ManageWalletModal = ({ open, onClose }: { open: boolean; onClose: () => vo
     }
   };
 
-  const handleSign = async () => {
-    setSigning(true);
-    setSignResult(null);
-    try {
-      const result = await signMessage('Sign this message to verify your wallet.');
-      setSignResult('Signature successful.');
-    //   setSignResult(result);  will be updated to handle the result properly	
-    } catch (e) {
-      setSignResult('Signature cancelled or failed.');
-    }
-    setSigning(false);
-  };
-
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Manage Wallet</DialogTitle>
           <DialogDescription>
-            View and manage your connected Cardano wallet.
+            View and manage your connected Xion wallet.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-sm text-gray-500">Wallet</div>
-              <div className="font-semibold text-vox-primary">{enabledWallet?.toUpperCase() || 'Unknown'}</div>
-            </div>
-            <div className="text-right">
-              <div className="text-sm text-gray-500">Balance</div>
-              <div className="font-semibold">{accountBalance} XION</div>
-            </div>
-          </div>
+			<div className="flex items-center justify-between">
+				<div className="text-sm text-gray-500">Balance</div>
+				<div className="font-semibold">{mockWallet.balance} XION</div>
+			</div>
           <div className="flex items-center gap-2 bg-gray-50 rounded px-3 py-2">
             <span className="font-mono text-xs break-all">
-				{ walletAddress ? walletAddress : 'No Address Connected' }
-			</span>
-            <Button size="icon" variant="ghost" onClick={handleCopy} className="ml-1">
+              {walletAddress ? shortenAddress(walletAddress) : 'No Address Connected'}
+            </span>
+            <Button onClick={handleCopy} className="ml-1">
               <Copy size={16} className={copied ? 'text-vox-accent' : ''} />
             </Button>
             {copied && <span className="text-xs text-vox-accent">Copied!</span>}
@@ -98,40 +70,18 @@ const ManageWalletModal = ({ open, onClose }: { open: boolean; onClose: () => vo
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 text-vox-primary hover:underline text-sm"
             >
-              <ExternalLink size={16} /> View on Cardanoscan
+              <ExternalLink size={16} /> View on Mintscan
             </a>
             <Button
-              variant="outline"
-              className="w-full flex items-center gap-2 border-vox-primary text-vox-primary hover:bg-vox-primary/10"
-              onClick={async () => {
-                await disconnect();
-                setTimeout(() => connect(enabledWallet), 300);
-              }}
-            >
-              <RefreshCw size={16} /> Switch Wallet
-            </Button>
-            <Button
-              variant="outline"
               className="w-full flex items-center gap-2 border-red-500 text-red-600 hover:bg-red-50"
-              onClick={disconnect}
+              onClick={onClose}
             >
               <LogOut size={16} /> Disconnect Wallet
             </Button>
-            <Button
-              variant="outline"
-              className="w-full flex items-center gap-2 border-vox-accent text-vox-accent hover:bg-vox-accent/10"
-              onClick={handleSign}
-              disabled={signing}
-            >
-              <PenTool size={16} /> {signing ? 'Signing...' : 'Sign Message'}
-            </Button>
-            {signResult && (
-              <div className="text-xs text-gray-500 mt-1 break-all">{signResult}</div>
-            )}
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose} className="w-full mt-2">Close</Button>
+          <Button onClick={onClose} className="w-full mt-2">Close</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -139,18 +89,14 @@ const ManageWalletModal = ({ open, onClose }: { open: boolean; onClose: () => vo
 };
 
 const Dashboard = () => {
-  const { 
-	isConnected,
-	stakeAddress,
-	usedAddresses,
-	unusedAddresses 
-	} = useCardano();
+	const {data: account, isConnected } = useAbstraxionAccount();
   const [activeTab, setActiveTab] = useState('overview');
   const [showWalletModal, setShowWalletModal] = useState(false);
 
   // Mock data usage
   const user = defaultUser;
   const userPlans = getUserPlans(user.id);
+	const address = account?.bech32Address ? account?.bech32Address : "Not Connected";
 
   // Upcoming payout (mock)
   const upcomingPayout = mockPayouts.find(
@@ -159,7 +105,7 @@ const Dashboard = () => {
 
   return (
     <Layout>
-      <ManageWalletModal open={showWalletModal} onClose={() => setShowWalletModal(false)} />
+      <ManageWalletModal open={showWalletModal} onClose={() => setShowWalletModal(false)} address={address}/>
       <div className="container py-8">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
           <div>
@@ -182,7 +128,7 @@ const Dashboard = () => {
               key="connect-wallet"
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 40 }}
+              exit={{ opacity: 0, y: 0 }}
               transition={{ duration: 0.5 }}
               className="flex flex-col items-center justify-center min-h-[60vh]"
             >
@@ -197,12 +143,8 @@ const Dashboard = () => {
                 </div>
                 <h2 className="text-xl font-heading font-bold text-center text-vox-secondary mb-2">Connect Your Wallet</h2>
                 <p className="text-center text-vox-secondary/70 mb-6 font-sans">
-                  Please connect your Cardano wallet to view your dashboard and manage your plans.
+                  Please connect your wallet to view your dashboard and manage your plans.
                 </p>
-                <ConnectWalletButton
-                  message="Please sign Augusta Ada King, Countess of Lovelace"
-                //   className="w-full gradient-bg text-white font-sans py-3 text-lg rounded-lg shadow-lg hover:opacity-90 transition-all"
-                />
               </motion.div>
             </motion.div>
           ) : (
@@ -213,172 +155,168 @@ const Dashboard = () => {
               exit={{ opacity: 0, y: 40 }}
               transition={{ duration: 0.5 }}
             >
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Sidebar */}
-          <div className="lg:col-span-1 space-y-6">
-                {/* User Profile Card */}
-                <Card>
-                  <CardHeader className="pb-3">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Sidebar */}
+                <div className="lg:col-span-1 space-y-6">
+                  {/* User Profile Card */}
+                  <Card>
+                    <CardHeader className="pb-3">
                       <CardTitle className="font-heading text-vox-primary">Your Profile</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div>
                           <p className="text-sm text-vox-secondary/60 font-sans">Wallet Address</p>
                           <p className="font-mono text-sm font-medium text-vox-secondary">
-							{stakeAddress ? (
-								<span className="ml-2">
-								{usedAddresses.length > 0 ? shortenAddress(usedAddresses[0]) : shortenAddress(unusedAddresses[0])}
-								</span>
-							) : (
-								<span className="ml-2">No Address</span>
-							)}
-						</p>
+                            {shortenAddress(address)}
+                          </p>
+                        </div>
+                        <TrustScoreBadge score={user.trustScore} />
                       </div>
-                      <TrustScoreBadge score={user.trustScore} />
-                    </div>
-                    <div>
+                      <div>
                         <p className="text-sm text-vox-secondary/60 font-sans mb-1">Trust Score Progress</p>
                         <Progress value={user.trustScore} className="h-2 bg-vox-primary/10" />
-                    </div>
-                    <div className="pt-2">
-                        <Button variant="outline" className="w-full font-sans border-vox-primary text-vox-primary hover:bg-vox-primary/10" onClick={() => setShowWalletModal(true)}>
-                        <Wallet size={16} className="mr-2" />
-                        Manage Wallet
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                      </div>
+                      <div className="pt-2">
+                        <Button
+                          className="w-full font-sans border-vox-primary text-vox-primary hover:bg-vox-primary/10"
+                          onClick={() => setShowWalletModal(true)}
+                        >
+                          <Wallet size={16} className="mr-2" />
+                          Manage Wallet
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
 
-                {/* Activity Summary */}
-                <Card>
-                  <CardHeader className="pb-3">
+                  {/* Activity Summary */}
+                  <Card>
+                    <CardHeader className="pb-3">
                       <CardTitle className="font-heading text-vox-primary">Activity Summary</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <div>
                           <p className="text-sm text-vox-secondary/60 font-sans">Active Plans</p>
                           <p className="text-xl font-bold text-vox-secondary">{userPlans.length}</p>
-                      </div>
-                      <div>
+                        </div>
+                        <div>
                           <p className="text-sm text-vox-secondary/60 font-sans">Total Contributed</p>
                           <p className="text-xl font-bold text-vox-secondary">350 XION</p>
+                        </div>
                       </div>
-                    </div>
-
-                    {upcomingPayout && (
+                      {upcomingPayout && (
                         <div className="bg-vox-accent/10 border border-vox-accent rounded-lg p-4">
                           <div className="flex items-center text-vox-accent mb-2">
-                          <Calendar size={16} className="mr-2" />
-                          <p className="text-sm font-medium">Upcoming Payout</p>
-                        </div>
+                            <Calendar size={16} className="mr-2" />
+                            <p className="text-sm font-medium">Upcoming Payout</p>
+                          </div>
                           <p className="font-bold text-lg text-vox-accent">{upcomingPayout.amount} XION</p>
                           <div className="flex items-center text-sm text-vox-secondary/60 mt-1">
-                          <Clock size={14} className="mr-1" />
-                          <p>{upcomingPayout.scheduledDate.toLocaleDateString()}</p>
+                            <Clock size={14} className="mr-1" />
+                            <p>{upcomingPayout.scheduledDate.toLocaleDateString()}</p>
+                          </div>
                         </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-          </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
 
-          {/* Main Content */}
-          <div className="lg:col-span-2">
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="mb-6">
-                  <TabsTrigger value="overview">Overview</TabsTrigger>
-                  <TabsTrigger value="plans">Your Plans</TabsTrigger>
-                  <TabsTrigger value="contributions">Contributions</TabsTrigger>
-                </TabsList>
+                {/* Main Content */}
+                <div className="lg:col-span-2">
+                  <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                    <TabsList className="mb-6">
+                      <TabsTrigger value="overview">Overview</TabsTrigger>
+                      <TabsTrigger value="plans">Your Plans</TabsTrigger>
+                      <TabsTrigger value="contributions">Contributions</TabsTrigger>
+                    </TabsList>
 
-                <TabsContent value="overview">
+                    <TabsContent value="overview">
                       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-                  {userPlans.length > 0 ? (
-                    <div className="space-y-6">
+                        {userPlans.length > 0 ? (
+                          <div className="space-y-6">
                             <h2 className="text-xl font-heading font-semibold text-vox-secondary">Your Active Plans</h2>
-                      {userPlans.map((plan) => (
-                        <PlanCard key={plan.id} plan={plan} isParticipant />
-                      ))}
-                    </div>
-                  ) : (
-                    <Card>
-                      <CardHeader>
+                            {userPlans.map((plan) => (
+                              <PlanCard key={plan.id} plan={plan} isParticipant />
+                            ))}
+                          </div>
+                        ) : (
+                          <Card>
+                            <CardHeader>
                               <CardTitle className="font-heading text-vox-primary">Welcome to VoxCard!</CardTitle>
                               <CardDescription className="text-vox-secondary/70 font-sans">
-                          You haven't joined any savings plans yet. Get started by creating or joining a plan.
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent className="flex flex-col items-center py-6">
+                                You haven't joined any savings plans yet. Get started by creating or joining a plan.
+                              </CardDescription>
+                            </CardHeader>
+                            <CardContent className="flex flex-col items-center py-6">
                               <div className="w-24 h-24 rounded-full bg-vox-primary/10 flex items-center justify-center mb-4">
                                 <Wallet size={36} className="text-vox-primary" />
-                        </div>
+                              </div>
                               <p className="text-center text-vox-secondary/70 mb-6 max-w-md font-sans">
-                          Join a community savings plan to start pooling resources with others,
-                          or create your own plan and invite friends and family.
-                        </p>
-                      </CardContent>
-                      <CardFooter className="flex flex-col sm:flex-row gap-3">
-                        <Link to="/plans" className="w-full sm:w-auto">
-                                <Button variant="outline" className="w-full font-sans border-vox-primary text-vox-primary hover:bg-vox-primary/10">Browse Plans</Button>
-                        </Link>
-                        <Link to="/create-plan" className="w-full sm:w-auto">
+                                Join a community savings plan to start pooling resources with others,
+                                or create your own plan and invite friends and family.
+                              </p>
+                            </CardContent>
+                            <CardFooter className="flex flex-col sm:flex-row gap-3">
+                              <Link to="/plans" className="w-full sm:w-auto">
+                                <Button className="w-full font-sans border-vox-primary text-vox-primary hover:bg-vox-primary/10">Browse Plans</Button>
+                              </Link>
+                              <Link to="/create-plan" className="w-full sm:w-auto">
                                 <Button className="w-full gradient-bg text-white font-sans hover:opacity-90 transition-opacity">Create a Plan</Button>
-                        </Link>
-                      </CardFooter>
-                    </Card>
-                  )}
+                              </Link>
+                            </CardFooter>
+                          </Card>
+                        )}
                       </motion.div>
-                </TabsContent>
+                    </TabsContent>
 
-                <TabsContent value="plans">
+                    <TabsContent value="plans">
                       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
                         <h2 className="text-xl font-heading font-semibold text-vox-secondary">All Your Plans</h2>
-                    {userPlans.length > 0 ? (
-                      userPlans.map((plan) => (
-                        <PlanCard key={plan.id} plan={plan} isParticipant />
-                      ))
-                    ) : (
-                      <div className="text-center py-12">
+                        {userPlans.length > 0 ? (
+                          userPlans.map((plan) => (
+                            <PlanCard key={plan.id} plan={plan} isParticipant />
+                          ))
+                        ) : (
+                          <div className="text-center py-12">
                             <p className="text-vox-secondary/70 mb-4 font-sans">You haven't joined any plans yet.</p>
-                        <Link to="/plans">
+                            <Link to="/plans">
                               <Button className="gradient-bg text-white font-sans hover:opacity-90 transition-opacity">Browse Plans</Button>
-                        </Link>
-                      </div>
-                    )}
+                            </Link>
+                          </div>
+                        )}
                       </motion.div>
-                </TabsContent>
+                    </TabsContent>
 
-                <TabsContent value="contributions">
+                    <TabsContent value="contributions">
                       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
                         <h2 className="text-xl font-heading font-semibold text-vox-secondary">Your Recent Contributions</h2>
-                    <div className="rounded-lg border overflow-hidden">
+                        <div className="rounded-lg border overflow-hidden">
                           <div className="grid grid-cols-12 bg-vox-primary/5 p-3 border-b">
                             <div className="col-span-4 font-medium font-sans text-vox-secondary">Plan</div>
                             <div className="col-span-3 font-medium font-sans text-vox-secondary">Amount</div>
                             <div className="col-span-3 font-medium font-sans text-vox-secondary">Date</div>
                             <div className="col-span-2 font-medium font-sans text-vox-secondary">Round</div>
-                      </div>
-                      {/* Mock contributions */}
-                      <div className="grid grid-cols-12 p-3 border-b">
+                          </div>
+                          {/* Mock contributions */}
+                          <div className="grid grid-cols-12 p-3 border-b">
                             <div className="col-span-4 font-sans">Community Savings</div>
                             <div className="col-span-3 font-sans">100 XION</div>
                             <div className="col-span-3 font-sans">Apr 15, 2025</div>
                             <div className="col-span-2 font-sans">2 of 12</div>
-                      </div>
-                      <div className="grid grid-cols-12 p-3 border-b">
+                          </div>
+                          <div className="grid grid-cols-12 p-3 border-b">
                             <div className="col-span-4 font-sans">Emergency Fund</div>
                             <div className="col-span-3 font-sans">75 XION</div>
                             <div className="col-span-3 font-sans">Mar 10, 2025</div>
                             <div className="col-span-2 font-sans">1 of 8</div>
-                      </div>
-                    </div>
+                          </div>
+                        </div>
                       </motion.div>
-                </TabsContent>
-              </Tabs>
-          </div>
-        </div>
+                    </TabsContent>
+                  </Tabs>
+                </div>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
