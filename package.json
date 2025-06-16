@@ -1,5 +1,5 @@
 {
-    "name": "vite_react_shadcn_ts",
+    "name": "voxcard",
     "private": true,
     "version": "0.0.0",
     "type": "module",
@@ -11,7 +11,8 @@
         "preview": "vite preview"
     },
     "dependencies": {
-        "@cardano-foundation/cardano-connect-with-wallet": "^0.2.14",
+        "@burnt-labs/abstraxion": "^1.0.0-alpha.62",
+        "@burnt-labs/ui": "0.1.0-alpha.17",
         "@hookform/resolvers": "^3.9.0",
         "@radix-ui/react-accordion": "^1.2.0",
         "@radix-ui/react-alert-dialog": "^1.1.1",
@@ -50,7 +51,7 @@
         "framer-motion": "^12.10.0",
         "input-otp": "^1.2.4",
         "lucide-react": "^0.462.0",
-        "next-themes": "^0.3.0",
+        "next-themes": "^0.4.6",
         "react": "^18.3.1",
         "react-day-picker": "^8.10.1",
         "react-dom": "^18.3.1",

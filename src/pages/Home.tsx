@@ -78,7 +78,7 @@ const Home = () => {
                     <div className="p-3 bg-gray-50 rounded-lg flex justify-between items-center">
                       <div>
                         <p className="text-sm text-vox-secondary/60">Monthly contribution</p>
-                        <p className="font-semibold">100 ADA</p>
+                        <p className="font-semibold">100 XION</p>
                       </div>
                       <div className="bg-green-100 text-green-700 text-xs font-medium px-2 py-1 rounded">
                         Paid
@@ -98,7 +98,7 @@ const Home = () => {
                     <div className="p-3 bg-gray-50 rounded-lg flex justify-between items-center">
                       <div>
                         <p className="text-sm text-vox-secondary/60">Total pool</p>
-                        <p className="font-semibold">1,200 ADA</p>
+                        <p className="font-semibold">1,200 XION</p>
                       </div>
                       <div className="text-xs font-medium">
                         <span className="text-green-600">↑ 9.8%</span> this month

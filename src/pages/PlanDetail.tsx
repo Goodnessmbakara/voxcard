@@ -153,7 +153,7 @@ const PlanDetail = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-vox-secondary/60 font-sans">Contribution</p>
-                    <p className="font-bold text-lg text-vox-secondary">{plan.contributionAmount} ADA</p>
+                    <p className="font-bold text-lg text-vox-secondary">{plan.contributionAmount} XION</p>
                     <p className="text-xs text-vox-secondary/60 font-sans">
                       {plan.frequency.toLowerCase()}
                     </p>
@@ -225,7 +225,7 @@ const PlanDetail = () => {
                 <div className="space-y-4">
                   <div>
                     <p className="text-sm text-gray-500">Total Pool Size</p>
-                    <p className="font-bold text-2xl">{plan.totalAmount} ADA</p>
+                    <p className="font-bold text-2xl">{plan.totalAmount} XION</p>
                   </div>
 
                   <div>
@@ -271,7 +271,7 @@ const PlanDetail = () => {
                   <CardContent className="space-y-4">
                     <p>
                       This is a {plan.frequency.toLowerCase()} rotating savings plan where each member
-                      contributes {plan.contributionAmount} ADA {plan.frequency.toLowerCase()} for a period
+                      contributes {plan.contributionAmount} XION {plan.frequency.toLowerCase()} for a period
                       of {plan.duration} {plan.duration === 1 ? 'month' : 'months'}.
                     </p>
 
@@ -303,7 +303,7 @@ const PlanDetail = () => {
                           <div className="flex justify-between items-center">
                             <div>
                               <p className="text-sm text-green-800">Round 1 Contribution</p>
-                              <p className="font-bold text-green-800">{plan.contributionAmount} ADA</p>
+                              <p className="font-bold text-green-800">{plan.contributionAmount} XION</p>
                             </div>
                             <div className="bg-green-100 text-green-700 text-xs font-medium px-2 py-1 rounded flex items-center">
                               <Check size={12} className="mr-1" />
@@ -316,7 +316,7 @@ const PlanDetail = () => {
                           <div className="flex justify-between items-center">
                             <div>
                               <p className="text-sm text-gray-800">Round 2 Contribution</p>
-                              <p className="font-bold">{plan.contributionAmount} ADA</p>
+                              <p className="font-bold">{plan.contributionAmount} XION</p>
                             </div>
                             <div className="flex items-center text-sm text-gray-500">
                               <Clock8 size={14} className="mr-1" />
@@ -424,7 +424,7 @@ const PlanDetail = () => {
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="font-medium">{plan.contributionAmount * plan.totalParticipants} ADA</p>
+                            <p className="font-medium">{plan.contributionAmount * plan.totalParticipants} XION</p>
                             <p className="text-xs text-gray-500">{payout.date.toLocaleDateString()}</p>
                           </div>
                         </div>

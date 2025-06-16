@@ -45,7 +45,7 @@ export const PlanCard = ({ plan, isParticipant = false }: PlanCardProps) => {
         <div className="grid grid-cols-2 gap-4 mb-4">
           <div>
             <p className="text-sm text-gray-500">Contribution</p>
-            <p className="font-bold text-lg">{plan.contributionAmount} ADA</p>
+            <p className="font-bold text-lg">{plan.contributionAmount} XION</p>
             <p className="text-xs text-gray-500">per {frequencyToText[plan.frequency]}</p>
           </div>
           <div>

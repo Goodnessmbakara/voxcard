@@ -1,7 +1,7 @@
 import { useWallet } from '@cardano-foundation/cardano-connect-with-wallet';
 import { Plan } from '../lib/mock-data';
 
-// Smart contract parameters
+// Smart contract parameters33
 interface ContractParams {
   name: string;
   description: string;

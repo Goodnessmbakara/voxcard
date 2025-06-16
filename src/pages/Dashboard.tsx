@@ -79,7 +79,7 @@ const ManageWalletModal = ({ open, onClose }: { open: boolean; onClose: () => vo
             </div>
             <div className="text-right">
               <div className="text-sm text-gray-500">Balance</div>
-              <div className="font-semibold">{accountBalance} ADA</div>
+              <div className="font-semibold">{accountBalance} XION</div>
             </div>
           </div>
           <div className="flex items-center gap-2 bg-gray-50 rounded px-3 py-2">
@@ -263,7 +263,7 @@ const Dashboard = () => {
                       </div>
                       <div>
                           <p className="text-sm text-vox-secondary/60 font-sans">Total Contributed</p>
-                          <p className="text-xl font-bold text-vox-secondary">350 ADA</p>
+                          <p className="text-xl font-bold text-vox-secondary">350 XION</p>
                       </div>
                     </div>
 
@@ -273,7 +273,7 @@ const Dashboard = () => {
                           <Calendar size={16} className="mr-2" />
                           <p className="text-sm font-medium">Upcoming Payout</p>
                         </div>
-                          <p className="font-bold text-lg text-vox-accent">{upcomingPayout.amount} ADA</p>
+                          <p className="font-bold text-lg text-vox-accent">{upcomingPayout.amount} XION</p>
                           <div className="flex items-center text-sm text-vox-secondary/60 mt-1">
                           <Clock size={14} className="mr-1" />
                           <p>{upcomingPayout.scheduledDate.toLocaleDateString()}</p>
@@ -363,13 +363,13 @@ const Dashboard = () => {
                       {/* Mock contributions */}
                       <div className="grid grid-cols-12 p-3 border-b">
                             <div className="col-span-4 font-sans">Community Savings</div>
-                            <div className="col-span-3 font-sans">100 ADA</div>
+                            <div className="col-span-3 font-sans">100 XION</div>
                             <div className="col-span-3 font-sans">Apr 15, 2025</div>
                             <div className="col-span-2 font-sans">2 of 12</div>
                       </div>
                       <div className="grid grid-cols-12 p-3 border-b">
                             <div className="col-span-4 font-sans">Emergency Fund</div>
-                            <div className="col-span-3 font-sans">75 ADA</div>
+                            <div className="col-span-3 font-sans">75 XION</div>
                             <div className="col-span-3 font-sans">Mar 10, 2025</div>
                             <div className="col-span-2 font-sans">1 of 8</div>
                       </div>

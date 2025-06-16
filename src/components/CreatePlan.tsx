@@ -99,7 +99,7 @@ export function CreatePlan() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="targetAmount">Target Amount (ADA)</Label>
+          <Label htmlFor="targetAmount">Target Amount (XION)</Label>
           <Input
             id="targetAmount"
             type="number"
@@ -114,7 +114,7 @@ export function CreatePlan() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="contributionAmount">Contribution Amount (ADA)</Label>
+          <Label htmlFor="contributionAmount">Contribution Amount (XION)</Label>
           <Input
             id="contributionAmount"
             type="number"

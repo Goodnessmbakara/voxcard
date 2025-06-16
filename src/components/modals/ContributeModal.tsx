@@ -71,7 +71,7 @@ export const ContributeModal = ({ plan, roundNumber, open, onClose }: Contribute
     if (!plan.allowPartial && contributionAmount < plan.contributionAmount) {
       toast({
         title: "Full payment required",
-        description: `This plan requires the full contribution amount of ${plan.contributionAmount} ADA`,
+        description: `This plan requires the full contribution amount of ${plan.contributionAmount} XION`,
         variant: "destructive",
       });
       setIsSubmitting(false);
@@ -89,7 +89,7 @@ export const ContributeModal = ({ plan, roundNumber, open, onClose }: Contribute
     // if (transactionSuccess) {
     //   toast({
     //     title: "Contribution successful!",
-    //     description: `You've contributed ${contributionAmount} ADA to round ${roundNumber}`,
+    //     description: `You've contributed ${contributionAmount} XION to round ${roundNumber}`,
     //   });
     //   onClose();
     // }
@@ -109,7 +109,7 @@ export const ContributeModal = ({ plan, roundNumber, open, onClose }: Contribute
 
         <div className="py-4 space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="amount">Contribution Amount (ADA)</Label>
+            <Label htmlFor="amount">Contribution Amount (XION)</Label>
             <Input
               id="amount"
               type="text"
@@ -119,12 +119,12 @@ export const ContributeModal = ({ plan, roundNumber, open, onClose }: Contribute
             />
             {plan.allowPartial && (
               <p className="text-sm text-gray-500">
-                This plan allows partial payments. Minimum contribution: 1 ADA
+                This plan allows partial payments. Minimum contribution: 1 XION
               </p>
             )}
             {!plan.allowPartial && (
               <p className="text-sm text-gray-500">
-                This plan requires the full payment of {plan.contributionAmount} ADA
+                This plan requires the full payment of {plan.contributionAmount} XION
               </p>
             )}
           </div>
@@ -137,7 +137,7 @@ export const ContributeModal = ({ plan, roundNumber, open, onClose }: Contribute
               <div className="ml-3">
                 <h3 className="text-sm font-medium text-green-800">Contribution Information</h3>
                 <div className="mt-2 text-sm text-green-700">
-                  <p>• Expected contribution: {plan.contributionAmount} ADA</p>
+                  <p>• Expected contribution: {plan.contributionAmount} XION</p>
                   <p>• Payment frequency: {plan.frequency.toLowerCase()}</p>
                   {plan.allowPartial && (
                     <p>• Partial payments are allowed</p>

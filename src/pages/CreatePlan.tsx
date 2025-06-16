@@ -174,7 +174,7 @@ const CreatePlan = () => {
                     name="contributionAmount"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Contribution Amount (ADA)</FormLabel>
+                        <FormLabel>Contribution Amount (XION)</FormLabel>
                         <FormControl>
                           <Input
                             type="number"
@@ -282,7 +282,7 @@ const CreatePlan = () => {
                     <h3 className="font-medium text-amber-800 mb-1">Important Information</h3>
                     <p className="text-sm text-amber-700">
                       Creating a plan will require a transaction on the Cardano blockchain. Make sure
-                      your wallet is connected and has sufficient ADA for transaction fees.
+                      your wallet is connected and has sufficient XION for transaction fees.
                     </p>
                   </div>
                   

@@ -91,7 +91,7 @@ const TransactionHistory = () => {
             </div>
             
             <div className="text-right">
-              <div className="font-bold text-lg">{tx.amount} ADA</div>
+              <div className="font-bold text-lg">{tx.amount} XION</div>
               <div className={`flex items-center text-xs ${
                 tx.status === 'confirmed' 
                   ? 'text-green-600' 

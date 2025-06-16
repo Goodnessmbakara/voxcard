@@ -1,27 +1,28 @@
 import { Link, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
-import { ConnectWalletButton } from "@cardano-foundation/cardano-connect-with-wallet";
 import { useState, useRef, useEffect } from "react";
-import { shortenAddress } from "@/services/utils";
 import { VoxCardLogo } from "@/components/shared/VoxCardLogo";
-import { useCardanoWallet } from "@/contexts/CardanoWalletContext";
+import {
+  Abstraxion,
+  useAbstraxionAccount,
+  useAbstraxionSigningClient,
+  useModal,
+} from "@burnt-labs/abstraxion";
+import { Button } from "@burnt-labs/ui";
+import "@burnt-labs/ui/dist/index.css";
+import { shortenAddress } from "@/services/utils";
 
 export const Navigation = () => {
-  const {
-    isConnected,
-    stakeAddress,
-    accountBalance,
-    usedAddresses,
-    unusedAddresses,
-    connect,
-    disconnect,
-  } = useCardanoWallet();
-  
   const [showDisconnect, setShowDisconnect] = useState(false);
   const disconnectMenuRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const [isOpen, setIsOpen] = useState(false);
+
+  // Abstraxion hooks for wallet connection
+  const { data: account } = useAbstraxionAccount();
+  const { logout } = useAbstraxionSigningClient();
+  const [, setShowModal] = useModal();
 
   useEffect(() => {
     if (!showDisconnect) return;
@@ -46,68 +47,37 @@ export const Navigation = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            <Link to="/dashboard" className="text-vox-secondary hover:text-vox-primary transition-colors font-sans">
+            <Link to="/dashboard" className="text-vox-secondary whitespace-nowrap hover:text-vox-primary transition-colors font-sans">
               Dashboard
             </Link>
-            <Link to="/plans" className="text-vox-secondary hover:text-vox-primary transition-colors font-sans">
+            <Link to="/plans" className="text-vox-secondary whitespace-nowrap hover:text-vox-primary transition-colors font-sans">
               Savings Plans
             </Link>
-            <Link to="/community" className="text-vox-secondary hover:text-vox-primary transition-colors font-sans">
+            <Link to="/community" className="text-vox-secondary whitespace-nowrap hover:text-vox-primary transition-colors font-sans">
               Community
             </Link>
-            <Link to="/about" className="text-vox-secondary hover:text-vox-primary transition-colors font-sans">
+            <Link to="/about" className="text-vox-secondary hover:text-vox-primary whitespace-nowrap transition-colors font-sans">
               About
             </Link>
-          </div>
-
-          {/* Wallet Connection */}
-          <div className="hidden md:block">
-            {!isConnected ? (
-              <ConnectWalletButton
-                message="Please sign Augusta Ada King, Countess of Lovelace"
-                onConnect={connect}
-              />
-            ) : (
-              <div className="relative" ref={disconnectMenuRef}>
-                <Button
-                  onClick={() => setShowDisconnect((prev) => !prev)}
-                  variant="outline"
-                  className="border-vox-primary text-vox-primary hover:bg-vox-primary/10 transition-all font-sans"
-                >
-                  <span>{accountBalance} ADA</span>
-                  <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse mr-2"></span>
-                  {stakeAddress ? (
-                    <span className="ml-2">
-                      {usedAddresses.length > 0 ? shortenAddress(usedAddresses[0]) : shortenAddress(unusedAddresses[0])}
-                    </span>
-                  ) : (
-                    <span className="ml-2">No Address</span>
-                  )}
-                </Button>
-
-                {showDisconnect && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-100">
-                    <button
-                      onClick={disconnect}
-                      className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50 font-sans"
-                    >
-                      Disconnect Wallet
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
+            <Button 
+				fullWidth 
+				onClick={() => setShowModal(true)} 
+				structure="base"
+				className="gradient-bg text-white"
+			>
+				{account?.bech32Address ? shortenAddress(account?.bech32Address) : "CONNECT"}
+			</Button>
           </div>
 
           {/* Mobile Menu Button */}
           <div className="md:hidden">
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon">
+                <Button structure="base">
                   <Menu className="h-6 w-6 text-vox-secondary" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[300px] sm:w-[400px]">
+              <SheetContent>
                 <div className="flex flex-col h-full">
                   <div className="flex items-center justify-between mb-8">
                     <VoxCardLogo variant="full" size="md" linkTo="/" />
@@ -140,43 +110,24 @@ export const Navigation = () => {
                     </Link>
                   </nav>
 
-                  <div className="mt-auto py-6">
-                    {!isConnected ? (
-                      <ConnectWalletButton
-                        message="Please sign Augusta Ada King, Countess of Lovelace"
-                        onConnect={connect}
-                      />
-                    ) : (
-                      <div className="space-y-2">
-                        <Button
-                          variant="outline"
-                          className="w-full border-vox-primary text-vox-primary hover:bg-vox-primary/10 font-sans"
-                        >
-                          <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse mr-2"></span>
-                          {stakeAddress ? (
-                            <span className="ml-2">
-                              {usedAddresses.length > 0 ? shortenAddress(usedAddresses[0]) : shortenAddress(unusedAddresses[0])}
-                            </span>
-                          ) : (
-                            <span className="ml-2">No Address</span>
-                          )}
-                        </Button>
-                        <Button
-                          onClick={disconnect}
-                          variant="ghost"
-                          className="w-full text-red-600 font-sans"
-                        >
-                          Disconnect Wallet
-                        </Button>
-                      </div>
-                    )}
-                  </div>
+                  {/* Wallet connect button for mobile */}
+                  <div className="mt-8">
+					<Button 
+						fullWidth 
+						onClick={() => setShowModal(true)} 
+						structure="base"
+						className="gradient-bg text-white"
+					>
+						{account?.bech32Address ? shortenAddress(account?.bech32Address) : "CONNECT"}
+					</Button>	
+				</div>
                 </div>
               </SheetContent>
             </Sheet>
           </div>
         </div>
       </div>
+	  <Abstraxion onClose={() => setShowModal(false)} />
     </nav>
   );
 };
