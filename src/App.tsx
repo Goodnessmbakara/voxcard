@@ -38,12 +38,8 @@ const App = () => {
 					<Route path="/create-plan" element={<CreatePlan />} />
 					<Route path="/about" element={<About />} />
 					<Route path="*" element={<NotFound />} />
-					{/* <Route path="/plans" element={<Plans />} />
+					<Route path="/plans" element={<Plans />} />
 					<Route path="/plans/:planId" element={<PlanDetail />} />
-					
-					
-
-					 */}
 				</Routes>
 				</AnimatePresence>
 			</AbstraxionProvider>

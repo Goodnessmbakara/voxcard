@@ -13,7 +13,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { UserPlus } from "lucide-react";
-import { useCardano } from "@cardano-foundation/cardano-connect-with-wallet";
 
 
 interface JoinPlanModalProps {
@@ -25,7 +24,7 @@ interface JoinPlanModalProps {
 
 export const JoinPlanModal = ({ planName, planId, open, onClose }: JoinPlanModalProps) => {
   const { toast } = useToast();
-  const { isConnected } = useCardano();
+  const isConnected = true;
   const [sponsor, setSponsor] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();

@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Plan } from '@/lib/mock-data';
 import { Check, Coins } from 'lucide-react';
-import { useCardano } from "@cardano-foundation/cardano-connect-with-wallet";
+
 
 
 interface ContributeModalProps {
@@ -27,11 +27,7 @@ interface ContributeModalProps {
 export const ContributeModal = ({ plan, roundNumber, open, onClose }: ContributeModalProps) => {
   const { toast } = useToast();
 
-  const {
-    isConnected,
-
-
-  } = useCardano();
+  const isConnected = true;
   const [amount, setAmount] = useState(plan.contributionAmount.toString());
   const [isSubmitting, setIsSubmitting] = useState(false);
 

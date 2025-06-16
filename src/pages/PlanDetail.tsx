@@ -23,7 +23,7 @@ import { Progress } from '@/components/ui/progress';
 import { Calendar, Check, Clock, Clock8, Users } from 'lucide-react';
 import JoinPlanModal from '@/components/modals/JoinPlanModal';
 import ContributeModal from '@/components/modals/ContributeModal';
-import { useCardano } from "@XION-foundation/XION-connect-with-wallet";
+
 
 
 const PlanDetail = () => {
@@ -34,9 +34,7 @@ const PlanDetail = () => {
   const [contributeModalOpen, setContributeModalOpen] = useState(false);
   const [selectedRound, setSelectedRound] = useState(1);
 
-  const {
-    isConnected,
-  } = useCardano();
+  const isConnected = true;
 
   // Find the plan from mock data
   const plan = mockPlans.find((p) => p.id === planId);
@@ -49,11 +47,11 @@ const PlanDetail = () => {
 
   // Calculate participation rate
   const participationRate = plan
-    ? (plan.currentParticipants / plan.totalParticipants) * 100
+    ? (plan.currentParticipants / plan.total_participants) * 100
     : 0;
 
   // Payout schedule calculation based on participants
-  const payoutSchedule = [...participants, ...Array(plan && plan.totalParticipants - participants.length).fill(null)]
+  const payoutSchedule = [...participants, ...Array(plan && plan.total_participants - participants.length).fill(null)]
     .map((participant, index) => ({
       round: index + 1,
       date: new Date(new Date().getTime() + index * 30 * 24 * 60 * 60 * 1000),
@@ -172,7 +170,7 @@ const PlanDetail = () => {
                     <div className="flex items-center">
                       <Users size={16} className="text-vox-secondary/40 mr-1" />
                       <span className="text-sm text-vox-secondary/60 font-sans">
-                        {plan.currentParticipants}/{plan.totalParticipants} participants
+                        {plan.currentParticipants}/{plan.total_participants} participants
                       </span>
                     </div>
                     <span className="text-sm text-vox-secondary/60 font-sans">
@@ -188,7 +186,7 @@ const PlanDetail = () => {
                     <span className="text-sm text-vox-secondary/60 font-sans">Created</span>
                   </div>
                   <span className="text-sm font-medium text-vox-secondary font-sans">
-                    {plan.createdAt.toLocaleDateString()}
+                    {plan.created_at.toLocaleDateString()}
                   </span>
                 </div>
 
@@ -234,7 +232,7 @@ const PlanDetail = () => {
                       <div className="h-8 w-8 rounded-full bg-[#E5E7EB] flex items-center justify-center text-ajo-tertiary font-medium">
                         1
                       </div>
-                      <span className="ml-2 font-medium">of {plan.totalParticipants}</span>
+                      <span className="ml-2 font-medium">of {plan.total_participants}</span>
                     </div>
                   </div>
 
@@ -345,7 +343,7 @@ const PlanDetail = () => {
                     <div className="flex justify-between items-center">
                       <CardTitle>Plan Participants</CardTitle>
                       <div className="text-sm text-gray-500">
-                        {plan.currentParticipants}/{plan.totalParticipants} members
+                        {plan.currentParticipants}/{plan.total_participants} members
                       </div>
                     </div>
                   </CardHeader>
@@ -367,7 +365,7 @@ const PlanDetail = () => {
                       ))}
 
                       {/* Placeholder for empty slots */}
-                      {Array(plan.totalParticipants - participants.length).fill(0).map((_, idx) => (
+                      {Array(plan.total_participants - participants.length).fill(0).map((_, idx) => (
                         <div key={`empty-${idx}`} className="flex items-center justify-between p-3 border rounded-lg border-dashed">
                           <div className="flex items-center">
                             <div className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-400">
@@ -379,7 +377,7 @@ const PlanDetail = () => {
                             </div>
                           </div>
                           <div className="text-sm text-gray-400">
-                            Slot {participants.length + idx + 1}/{plan.totalParticipants}
+                            Slot {participants.length + idx + 1}/{plan.total_participants}
                           </div>
                         </div>
                       ))}
@@ -424,7 +422,7 @@ const PlanDetail = () => {
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="font-medium">{plan.contributionAmount * plan.totalParticipants} XION</p>
+                            <p className="font-medium">{plan.contributionAmount * plan.total_participants} XION</p>
                             <p className="text-xs text-gray-500">{payout.date.toLocaleDateString()}</p>
                           </div>
                         </div>

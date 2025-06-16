@@ -65,7 +65,7 @@ const Plans = () => {
       <div className="relative container py-8">
         {/* Animated background blob */}
         <motion.div
-          className="hidden md:block absolute -top-20 -right-20 w-96 h-96 bg-vox-accent/20 rounded-full blur-3xl z-0"
+          className="hidden md:block absolute -top-20 -right-20 w-96 h-96 bg-green-50 rounded-full blur-3xl z-0"
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 1.2 }}
@@ -88,7 +88,7 @@ const Plans = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="flex flex-col md:flex-row gap-4 mb-8 sticky top-16 z-20 bg-white/80 backdrop-blur rounded-xl p-4 md:p-0 shadow md:shadow-none"
+          className="flex flex-col md:flex-row gap-4 mb-8 sticky top-16 z-20 backdrop-blur rounded-xl p-4 md:p-0 shadow md:shadow-none"
         >
           <div className="relative flex-1">
             <Search size={18} className="absolute left-3 top-3 text-vox-secondary/40" />
