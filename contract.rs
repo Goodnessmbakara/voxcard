@@ -26,11 +26,13 @@ struct Plan {
     duration_months: u32,
     trust_score_required: u32,
     allow_partial: bool,
+    initiator: Addr,
     participants: Vec<Addr>,
     contributions: Map<Addr, Uint128>,
     current_cycle: u32,
     is_active: bool,
     payout_index: u32,
+    is_cancelled: bool,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -60,6 +62,19 @@ enum ExecuteMsg {
     JoinPlan { plan_id: u64 },
     Contribute { plan_id: u64, amount: Uint128 },
     DistributePayout { plan_id: u64 },
+    CancelPlan { plan_id: u64 },
+    UpdatePlan {
+        plan_id: u64,
+        name: Option<String>,
+        description: Option<String>,
+        total_participants: Option<u32>,
+        contribution_amount: Option<Uint128>,
+        frequency: Option<String>,
+        duration_months: Option<u32>,
+        trust_score_required: Option<u32>,
+        allow_partial: Option<bool>,
+    },
+    EmergencyWithdraw { plan_id: u64 },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -127,6 +142,19 @@ pub fn execute(
         ExecuteMsg::JoinPlan { plan_id } => execute_join_plan(deps, info, plan_id),
         ExecuteMsg::Contribute { plan_id, amount } => execute_contribute(deps, env, info, plan_id, amount),
         ExecuteMsg::DistributePayout { plan_id } => execute_distribute_payout(deps, env, info, plan_id),
+        ExecuteMsg::CancelPlan { plan_id } => execute_cancel_plan(deps, info, plan_id),
+        ExecuteMsg::UpdatePlan {
+            plan_id,
+            name,
+            description,
+            total_participants,
+            contribution_amount,
+            frequency,
+            duration_months,
+            trust_score_required,
+            allow_partial,
+        } => execute_update_plan(deps, info, plan_id, name, description, total_participants, contribution_amount, frequency, duration_months, trust_score_required, allow_partial),
+        ExecuteMsg::EmergencyWithdraw { plan_id } => execute_emergency_withdraw(deps, env, info, plan_id),
     }
 }
 
@@ -142,11 +170,6 @@ fn execute_create_plan(
     trust_score_required: u32,
     allow_partial: bool,
 ) -> StdResult<Response> {
-    let config = singleton_read(deps.storage, CONFIG_KEY).load()?;
-    if info.sender != config.admin {
-        return Err(StdError::generic_err("Only admin can create plans"));
-    }
-
     if total_participants < 2 || total_participants > 100 {
         return Err(StdError::generic_err("Participants must be between 2 and 100"));
     }
@@ -162,14 +185,12 @@ fn execute_create_plan(
     if description.len() < 10 || description.len() > 500 {
         return Err(StdError::generic_err("Description must be between 10 and 500 characters"));
     }
-
     let frequency = match frequency.as_str() {
         "Daily" => Frequency::Daily,
         "Weekly" => Frequency::Weekly,
         "Monthly" => Frequency::Monthly,
         _ => return Err(StdError::generic_err("Invalid frequency")),
     };
-
     let plan_id = PLAN_COUNT.load(deps.storage)? + 1;
     let plan = Plan {
         id: plan_id,
@@ -181,16 +202,16 @@ fn execute_create_plan(
         duration_months,
         trust_score_required,
         allow_partial,
+        initiator: info.sender.clone(),
         participants: vec![],
         contributions: Map::new(format!("contributions_{}", plan_id).as_bytes()),
         current_cycle: 0,
         is_active: false,
         payout_index: 0,
+        is_cancelled: false,
     };
-
     PLANS.save(deps.storage, plan_id, &plan)?;
     PLAN_COUNT.save(deps.storage, &plan_id)?;
-
     Ok(Response::new()
         .add_attribute("method", "create_plan")
         .add_attribute("plan_id", plan_id.to_string()))
@@ -330,6 +351,92 @@ fn execute_distribute_payout(
         .add_attribute("plan_id", plan_id.to_string())
         .add_attribute("recipient", payout_recipient.to_string())
         .add_attribute("amount", payout_amount.to_string()))
+}
+
+fn execute_cancel_plan(
+    deps: DepsMut,
+    info: MessageInfo,
+    plan_id: u64,
+) -> StdResult<Response> {
+    let mut plan = PLANS.load(deps.storage, plan_id)?;
+    if plan.initiator != info.sender {
+        return Err(StdError::generic_err("Only the plan creator can cancel the plan"));
+    }
+    if plan.is_active {
+        return Err(StdError::generic_err("Cannot cancel an active plan"));
+    }
+    plan.is_cancelled = true;
+    PLANS.save(deps.storage, plan_id, &plan)?;
+    // Refund logic can be added here if funds were already sent
+    Ok(Response::new()
+        .add_attribute("method", "cancel_plan")
+        .add_attribute("plan_id", plan_id.to_string()))
+}
+
+fn execute_update_plan(
+    deps: DepsMut,
+    info: MessageInfo,
+    plan_id: u64,
+    name: Option<String>,
+    description: Option<String>,
+    total_participants: Option<u32>,
+    contribution_amount: Option<Uint128>,
+    frequency: Option<String>,
+    duration_months: Option<u32>,
+    trust_score_required: Option<u32>,
+    allow_partial: Option<bool>,
+) -> StdResult<Response> {
+    let mut plan = PLANS.load(deps.storage, plan_id)?;
+    if plan.initiator != info.sender {
+        return Err(StdError::generic_err("Only the plan creator can update the plan"));
+    }
+    if plan.is_active {
+        return Err(StdError::generic_err("Cannot update an active plan"));
+    }
+    if let Some(n) = name { plan.name = n; }
+    if let Some(d) = description { plan.description = d; }
+    if let Some(tp) = total_participants { plan.total_participants = tp; }
+    if let Some(ca) = contribution_amount { plan.contribution_amount = ca; }
+    if let Some(f) = frequency {
+        plan.frequency = match f.as_str() {
+            "Daily" => Frequency::Daily,
+            "Weekly" => Frequency::Weekly,
+            "Monthly" => Frequency::Monthly,
+            _ => return Err(StdError::generic_err("Invalid frequency")),
+        };
+    }
+    if let Some(dm) = duration_months { plan.duration_months = dm; }
+    if let Some(ts) = trust_score_required { plan.trust_score_required = ts; }
+    if let Some(ap) = allow_partial { plan.allow_partial = ap; }
+    PLANS.save(deps.storage, plan_id, &plan)?;
+    Ok(Response::new()
+        .add_attribute("method", "update_plan")
+        .add_attribute("plan_id", plan_id.to_string()))
+}
+
+fn execute_emergency_withdraw(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    plan_id: u64,
+) -> StdResult<Response> {
+    let plan = PLANS.load(deps.storage, plan_id)?;
+    if plan.initiator != info.sender {
+        return Err(StdError::generic_err("Only the plan creator can withdraw"));
+    }
+    if !plan.is_cancelled && plan.is_active {
+        return Err(StdError::generic_err("Can only withdraw from cancelled or inactive plans"));
+    }
+    // Send all contract balance to initiator
+    let balance = deps.querier.query_all_balances(env.contract.address)?;
+    let bank_msg = cosmwasm_std::BankMsg::Send {
+        to_address: info.sender.to_string(),
+        amount: balance,
+    };
+    Ok(Response::new()
+        .add_message(bank_msg)
+        .add_attribute("method", "emergency_withdraw")
+        .add_attribute("plan_id", plan_id.to_string()))
 }
 
 fn plan_frequency_to_cycles(frequency: &Frequency) -> u32 {

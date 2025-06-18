@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -14,6 +14,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Plan } from "@/lib/mock-data";
 import { Check, Coins } from "lucide-react";
 import XionWalletService from "@/services/blockchain";
+import { useContract } from "@/services/contract";
+import { Switch } from "@/components/ui/switch";
 
 interface ContributeModalProps {
   plan: Plan;
@@ -32,6 +34,26 @@ export const ContributeModal = ({
   const { isConnected } = XionWalletService.useWallet();
   const [amount, setAmount] = useState(plan.contributionAmount.toString());
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [useGasless, setUseGasless] = useState(false);
+  const [isGaslessAvailable, setIsGaslessAvailable] = useState(false);
+  const contractService = useContract();
+
+  useEffect(() => {
+    // Check if gasless transactions are available for this contract
+    const checkGaslessAvailability = async () => {
+      try {
+        const available = await contractService.isGaslessAvailable(plan.id);
+        setIsGaslessAvailable(available);
+      } catch (error) {
+        console.error("Error checking gasless availability:", error);
+        setIsGaslessAvailable(false);
+      }
+    };
+
+    if (open) {
+      checkGaslessAvailability();
+    }
+  }, [open, plan.id]);
 
   // Handle amount change
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -77,23 +99,31 @@ export const ContributeModal = ({
       return;
     }
 
-    // Execute blockchain transaction
-    // const transactionSuccess = await openWalletForTransaction(
-    //   contributionAmount,
-    //   `Round ${roundNumber} contribution for ${plan.name}`,
-    //   plan.id,
-    //   roundNumber
-    // );
+    try {
+      const result = await contractService.submitContribution(
+        plan.id,
+        contributionAmount,
+        roundNumber,
+        useGasless
+      );
 
-    // if (transactionSuccess) {
-    //   toast({
-    //     title: "Contribution successful!",
-    //     description: `You've contributed ${contributionAmount} XION to round ${roundNumber}`,
-    //   });
-    //   onClose();
-    // }
+      toast({
+        title: "Contribution submitted",
+        description: `Transaction hash: ${result.txHash}`,
+      });
 
-    setIsSubmitting(false);
+      onClose();
+      setAmount("");
+    } catch (error) {
+      console.error("Error submitting contribution:", error);
+      toast({
+        title: "Error",
+        description: "Failed to submit contribution. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -128,6 +158,17 @@ export const ContributeModal = ({
               </p>
             )}
           </div>
+
+          {isGaslessAvailable && (
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="gasless"
+                checked={useGasless}
+                onCheckedChange={setUseGasless}
+              />
+              <Label htmlFor="gasless">Use gasless transaction</Label>
+            </div>
+          )}
 
           <div className="rounded-md bg-green-50 p-4">
             <div className="flex">
