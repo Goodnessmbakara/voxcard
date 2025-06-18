@@ -112,21 +112,21 @@ export interface Plan {
     {
       id: 'user-1',
       name: 'Ahmed',
-      walletAddress: 'addr1qxy8r...',
+      walletAddress: 'xion1qxy8r...',
       trustScore: 95,
       plans: ['plan-1', 'plan-2'],
     },
     {
       id: 'user-2',
       name: 'Ngozi',
-      walletAddress: 'addr1qzm5f...',
+      walletAddress: 'xion1qzm5f...',
       trustScore: 88,
       plans: ['plan-2'],
     },
     {
       id: 'user-3',
       name: 'Kofi',
-      walletAddress: 'addr1q9j7r...',
+      walletAddress: 'xion1q9j7r...',
       trustScore: 76,
       plans: ['plan-3'],
     },
@@ -221,7 +221,7 @@ export interface Plan {
   export const defaultUser = {
     id: 'current-user',
     name: 'You',
-    walletAddress: 'addr1q8j5r...',
+    walletAddress: 'xion1q8j5r...',
     trustScore: 82,
     plans: ['plan-1', 'plan-3'],
   };

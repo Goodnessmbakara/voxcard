@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -12,10 +11,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Plan } from '@/lib/mock-data';
-import { Check, Coins } from 'lucide-react';
-
-
+import { Plan } from "@/lib/mock-data";
+import { Check, Coins } from "lucide-react";
+import XionWalletService from "@/services/blockchain";
 
 interface ContributeModalProps {
   plan: Plan;
@@ -24,17 +22,22 @@ interface ContributeModalProps {
   onClose: () => void;
 }
 
-export const ContributeModal = ({ plan, roundNumber, open, onClose }: ContributeModalProps) => {
+export const ContributeModal = ({
+  plan,
+  roundNumber,
+  open,
+  onClose,
+}: ContributeModalProps) => {
   const { toast } = useToast();
-
-  const isConnected = true;
+  const { isConnected } = XionWalletService.useWallet();
   const [amount, setAmount] = useState(plan.contributionAmount.toString());
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Handle amount change
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    if (/^\d*\.?\d*$/.test(value)) { // Allow only numbers and a decimal point
+    if (/^\d*\.?\d*$/.test(value)) {
+      // Allow only numbers and a decimal point
       setAmount(value);
     }
   };
@@ -120,7 +123,8 @@ export const ContributeModal = ({ plan, roundNumber, open, onClose }: Contribute
             )}
             {!plan.allowPartial && (
               <p className="text-sm text-gray-500">
-                This plan requires the full payment of {plan.contributionAmount} XION
+                This plan requires the full payment of {plan.contributionAmount}{" "}
+                XION
               </p>
             )}
           </div>
@@ -131,13 +135,13 @@ export const ContributeModal = ({ plan, roundNumber, open, onClose }: Contribute
                 <Coins className="h-5 w-5 text-green-400" />
               </div>
               <div className="ml-3">
-                <h3 className="text-sm font-medium text-green-800">Contribution Information</h3>
+                <h3 className="text-sm font-medium text-green-800">
+                  Contribution Information
+                </h3>
                 <div className="mt-2 text-sm text-green-700">
                   <p>• Expected contribution: {plan.contributionAmount} XION</p>
                   <p>• Payment frequency: {plan.frequency.toLowerCase()}</p>
-                  {plan.allowPartial && (
-                    <p>• Partial payments are allowed</p>
-                  )}
+                  {plan.allowPartial && <p>• Partial payments are allowed</p>}
                   <p>• Your contribution will be locked in a smart contract</p>
                 </div>
               </div>
@@ -149,8 +153,12 @@ export const ContributeModal = ({ plan, roundNumber, open, onClose }: Contribute
           <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
             Cancel
           </Button>
-          <Button onClick={handleContribute} disabled={isSubmitting} className="bg-ajo-primary hover:bg-ajo-secondary text-white">
-            {isSubmitting ? 'Processing...' : 'Make Contribution'}
+          <Button
+            onClick={handleContribute}
+            disabled={isSubmitting}
+            className="bg-ajo-primary hover:bg-ajo-secondary text-white"
+          >
+            {isSubmitting ? "Processing..." : "Make Contribution"}
           </Button>
         </DialogFooter>
       </DialogContent>

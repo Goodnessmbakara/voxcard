@@ -1,10 +1,15 @@
-import { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import Layout from '@/components/layout/Layout';
-import TrustScoreBadge from '@/components/shared/TrustScoreBadge';
-import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
-import { mockPlans, mockUsers, getPlanParticipants, defaultUser } from '@/lib/mock-data';
+import { useState } from "react";
+import { useParams, Link } from "react-router-dom";
+import Layout from "@/components/layout/Layout";
+import TrustScoreBadge from "@/components/shared/TrustScoreBadge";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import {
+  mockPlans,
+  mockUsers,
+  getPlanParticipants,
+  defaultUser,
+} from "@/lib/mock-data";
 import {
   Card,
   CardContent,
@@ -12,24 +17,18 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/tabs';
-import { Progress } from '@/components/ui/progress';
-import { Calendar, Check, Clock, Clock8, Users } from 'lucide-react';
-import JoinPlanModal from '@/components/modals/JoinPlanModal';
-import ContributeModal from '@/components/modals/ContributeModal';
-
-
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
+import { Calendar, Check, Clock, Clock8, Users } from "lucide-react";
+import JoinPlanModal from "@/components/modals/JoinPlanModal";
+import ContributeModal from "@/components/modals/ContributeModal";
+import XionWalletService from "@/services/blockchain";
 
 const PlanDetail = () => {
   const { planId } = useParams<{ planId: string }>();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState("overview");
   const [joinModalOpen, setJoinModalOpen] = useState(false);
   const [contributeModalOpen, setContributeModalOpen] = useState(false);
   const [selectedRound, setSelectedRound] = useState(1);
@@ -40,10 +39,10 @@ const PlanDetail = () => {
   const plan = mockPlans.find((p) => p.id === planId);
 
   // Get participants for this plan
-  const participants = getPlanParticipants(planId || '');
+  const participants = getPlanParticipants(planId || "");
 
   // Check if current user is already a participant
-  const isParticipant = defaultUser.plans.includes(planId || '');
+  const isParticipant = defaultUser.plans.includes(planId || "");
 
   // Calculate participation rate
   const participationRate = plan
@@ -51,12 +50,14 @@ const PlanDetail = () => {
     : 0;
 
   // Payout schedule calculation based on participants
-  const payoutSchedule = [...participants, ...Array(plan && plan.total_participants - participants.length).fill(null)]
-    .map((participant, index) => ({
-      round: index + 1,
-      date: new Date(new Date().getTime() + index * 30 * 24 * 60 * 60 * 1000),
-      participant
-    }));
+  const payoutSchedule = [
+    ...participants,
+    ...Array(plan && plan.total_participants - participants.length).fill(null),
+  ].map((participant, index) => ({
+    round: index + 1,
+    date: new Date(new Date().getTime() + index * 30 * 24 * 60 * 60 * 1000),
+    participant,
+  }));
 
   const handleJoinPlan = () => {
     if (!isConnected) {
@@ -89,10 +90,16 @@ const PlanDetail = () => {
     return (
       <Layout>
         <div className="container py-16 text-center">
-          <h1 className="text-3xl font-heading font-bold mb-4 text-vox-secondary">Plan not found</h1>
-          <p className="mb-8 text-vox-secondary/70 font-sans">The savings plan you're looking for doesn't exist.</p>
+          <h1 className="text-3xl font-heading font-bold mb-4 text-vox-secondary">
+            Plan not found
+          </h1>
+          <p className="mb-8 text-vox-secondary/70 font-sans">
+            The savings plan you're looking for doesn't exist.
+          </p>
           <Link to="/plans">
-            <Button className="gradient-bg text-white font-sans hover:opacity-90 transition-opacity">Browse Other Plans</Button>
+            <Button className="gradient-bg text-white font-sans hover:opacity-90 transition-opacity">
+              Browse Other Plans
+            </Button>
           </Link>
         </div>
       </Layout>
@@ -105,7 +112,12 @@ const PlanDetail = () => {
         {/* Plan Header */}
         <div className="mb-8">
           <div className="flex items-center gap-2 text-vox-secondary/60 mb-2 font-sans">
-            <Link to="/plans" className="hover:text-vox-primary transition-colors">Plans</Link>
+            <Link
+              to="/plans"
+              className="hover:text-vox-primary transition-colors"
+            >
+              Plans
+            </Link>
             <span>/</span>
             <span className="truncate">{plan.name}</span>
           </div>
@@ -113,15 +125,19 @@ const PlanDetail = () => {
           <div className="flex flex-col md:flex-row justify-between md:items-center">
             <div>
               <div className="flex items-center gap-3">
-                <h1 className="text-3xl font-heading font-bold text-vox-secondary">{plan.name}</h1>
+                <h1 className="text-3xl font-heading font-bold text-vox-secondary">
+                  {plan.name}
+                </h1>
                 <span className="px-3 py-1 rounded-full text-sm font-medium bg-vox-primary/10 text-vox-primary capitalize">
                   {plan.status}
                 </span>
               </div>
-              <p className="text-vox-secondary/70 mt-2 font-sans">{plan.description}</p>
+              <p className="text-vox-secondary/70 mt-2 font-sans">
+                {plan.description}
+              </p>
             </div>
 
-            {!isParticipant && plan.status === 'Open' && (
+            {!isParticipant && plan.status === "Open" && (
               <Button
                 className="mt-4 md:mt-0 gradient-bg text-white font-sans hover:opacity-90 transition-opacity"
                 onClick={handleJoinPlan}
@@ -145,22 +161,32 @@ const PlanDetail = () => {
           <div className="lg:col-span-1 space-y-6">
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="font-heading text-vox-primary">Plan Details</CardTitle>
+                <CardTitle className="font-heading text-vox-primary">
+                  Plan Details
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-vox-secondary/60 font-sans">Contribution</p>
-                    <p className="font-bold text-lg text-vox-secondary">{plan.contributionAmount} XION</p>
+                    <p className="text-sm text-vox-secondary/60 font-sans">
+                      Contribution
+                    </p>
+                    <p className="font-bold text-lg text-vox-secondary">
+                      {plan.contributionAmount} XION
+                    </p>
                     <p className="text-xs text-vox-secondary/60 font-sans">
                       {plan.frequency.toLowerCase()}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-vox-secondary/60 font-sans">Duration</p>
-                    <p className="font-bold text-lg text-vox-secondary">{plan.duration}</p>
+                    <p className="text-sm text-vox-secondary/60 font-sans">
+                      Duration
+                    </p>
+                    <p className="font-bold text-lg text-vox-secondary">
+                      {plan.duration}
+                    </p>
                     <p className="text-xs text-vox-secondary/60 font-sans">
-                      {plan.duration === 1 ? 'month' : 'months'}
+                      {plan.duration === 1 ? "month" : "months"}
                     </p>
                   </div>
                 </div>
@@ -170,20 +196,29 @@ const PlanDetail = () => {
                     <div className="flex items-center">
                       <Users size={16} className="text-vox-secondary/40 mr-1" />
                       <span className="text-sm text-vox-secondary/60 font-sans">
-                        {plan.currentParticipants}/{plan.total_participants} participants
+                        {plan.currentParticipants}/{plan.total_participants}{" "}
+                        participants
                       </span>
                     </div>
                     <span className="text-sm text-vox-secondary/60 font-sans">
                       {participationRate.toFixed(0)}%
                     </span>
                   </div>
-                  <Progress value={participationRate} className="h-2 bg-vox-primary/10" />
+                  <Progress
+                    value={participationRate}
+                    className="h-2 bg-vox-primary/10"
+                  />
                 </div>
 
                 <div className="flex items-center justify-between pt-2">
                   <div className="flex items-center">
-                    <Calendar size={16} className="text-vox-secondary/40 mr-1" />
-                    <span className="text-sm text-vox-secondary/60 font-sans">Created</span>
+                    <Calendar
+                      size={16}
+                      className="text-vox-secondary/40 mr-1"
+                    />
+                    <span className="text-sm text-vox-secondary/60 font-sans">
+                      Created
+                    </span>
                   </div>
                   <span className="text-sm font-medium text-vox-secondary font-sans">
                     {plan.created_at.toLocaleDateString()}
@@ -193,7 +228,9 @@ const PlanDetail = () => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <Users size={16} className="text-vox-secondary/40 mr-1" />
-                    <span className="text-sm text-vox-secondary/60 font-sans">Initiator</span>
+                    <span className="text-sm text-vox-secondary/60 font-sans">
+                      Initiator
+                    </span>
                   </div>
                   <span className="text-sm font-medium text-vox-secondary font-sans">
                     {plan.initiator}
@@ -202,14 +239,24 @@ const PlanDetail = () => {
 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
-                    <TrustScoreBadge score={plan.trustScoreRequired} size="sm" showLabel={false} />
-                    <span className="text-sm text-gray-500 ml-1">Min. Trust Score</span>
+                    <TrustScoreBadge
+                      score={plan.trustScoreRequired}
+                      size="sm"
+                      showLabel={false}
+                    />
+                    <span className="text-sm text-gray-500 ml-1">
+                      Min. Trust Score
+                    </span>
                   </div>
-                  <span className="text-sm font-medium">{plan.trustScoreRequired}/100</span>
+                  <span className="text-sm font-medium">
+                    {plan.trustScoreRequired}/100
+                  </span>
                 </div>
 
                 <div className="pt-4">
-                  <Button variant="outline" className="w-full">View on Blockchain</Button>
+                  <Button variant="outline" className="w-full">
+                    View on Blockchain
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -223,7 +270,9 @@ const PlanDetail = () => {
                 <div className="space-y-4">
                   <div>
                     <p className="text-sm text-gray-500">Total Pool Size</p>
-                    <p className="font-bold text-2xl">{plan.totalAmount} XION</p>
+                    <p className="font-bold text-2xl">
+                      {plan.totalAmount} XION
+                    </p>
                   </div>
 
                   <div>
@@ -232,7 +281,9 @@ const PlanDetail = () => {
                       <div className="h-8 w-8 rounded-full bg-[#E5E7EB] flex items-center justify-center text-ajo-tertiary font-medium">
                         1
                       </div>
-                      <span className="ml-2 font-medium">of {plan.total_participants}</span>
+                      <span className="ml-2 font-medium">
+                        of {plan.total_participants}
+                      </span>
                     </div>
                   </div>
 
@@ -263,27 +314,36 @@ const PlanDetail = () => {
                   <CardHeader>
                     <CardTitle>How This Plan Works</CardTitle>
                     <CardDescription>
-                      Understanding the savings rotation and contribution process.
+                      Understanding the savings rotation and contribution
+                      process.
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <p>
-                      This is a {plan.frequency.toLowerCase()} rotating savings plan where each member
-                      contributes {plan.contributionAmount} XION {plan.frequency.toLowerCase()} for a period
-                      of {plan.duration} {plan.duration === 1 ? 'month' : 'months'}.
+                      This is a {plan.frequency.toLowerCase()} rotating savings
+                      plan where each member contributes{" "}
+                      {plan.contributionAmount} XION{" "}
+                      {plan.frequency.toLowerCase()} for a period of{" "}
+                      {plan.duration} {plan.duration === 1 ? "month" : "months"}
+                      .
                     </p>
 
                     <p>
-                      Each {plan.frequency.toLowerCase()}, all members contribute to the pool, and one member
-                      receives the entire pool amount. The order of recipients is determined by trust scores
-                      and when they joined the plan.
+                      Each {plan.frequency.toLowerCase()}, all members
+                      contribute to the pool, and one member receives the entire
+                      pool amount. The order of recipients is determined by
+                      trust scores and when they joined the plan.
                     </p>
 
                     <h3 className="font-bold text-lg mt-6">Key Features</h3>
                     <ul className="list-disc pl-5 space-y-1">
                       <li>Smart contract-secured funds</li>
                       <li>Automatic payment execution</li>
-                      <li>{plan.allowPartial ? 'Partial payments allowed' : 'Full payments required'}</li>
+                      <li>
+                        {plan.allowPartial
+                          ? "Partial payments allowed"
+                          : "Full payments required"}
+                      </li>
                       <li>Trust score-based recipient ordering</li>
                       <li>Community governance through voting</li>
                     </ul>
@@ -300,8 +360,12 @@ const PlanDetail = () => {
                         <div className="rounded-lg border border-green-100 bg-green-50 p-4">
                           <div className="flex justify-between items-center">
                             <div>
-                              <p className="text-sm text-green-800">Round 1 Contribution</p>
-                              <p className="font-bold text-green-800">{plan.contributionAmount} XION</p>
+                              <p className="text-sm text-green-800">
+                                Round 1 Contribution
+                              </p>
+                              <p className="font-bold text-green-800">
+                                {plan.contributionAmount} XION
+                              </p>
                             </div>
                             <div className="bg-green-100 text-green-700 text-xs font-medium px-2 py-1 rounded flex items-center">
                               <Check size={12} className="mr-1" />
@@ -313,8 +377,12 @@ const PlanDetail = () => {
                         <div className="rounded-lg border p-4">
                           <div className="flex justify-between items-center">
                             <div>
-                              <p className="text-sm text-gray-800">Round 2 Contribution</p>
-                              <p className="font-bold">{plan.contributionAmount} XION</p>
+                              <p className="text-sm text-gray-800">
+                                Round 2 Contribution
+                              </p>
+                              <p className="font-bold">
+                                {plan.contributionAmount} XION
+                              </p>
                             </div>
                             <div className="flex items-center text-sm text-gray-500">
                               <Clock8 size={14} className="mr-1" />
@@ -343,21 +411,27 @@ const PlanDetail = () => {
                     <div className="flex justify-between items-center">
                       <CardTitle>Plan Participants</CardTitle>
                       <div className="text-sm text-gray-500">
-                        {plan.currentParticipants}/{plan.total_participants} members
+                        {plan.currentParticipants}/{plan.total_participants}{" "}
+                        members
                       </div>
                     </div>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
                       {participants.map((participant) => (
-                        <div key={participant.id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div
+                          key={participant.id}
+                          className="flex items-center justify-between p-3 border rounded-lg"
+                        >
                           <div className="flex items-center">
                             <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center font-medium text-gray-600">
                               {participant.name.substring(0, 1)}
                             </div>
                             <div className="ml-3">
                               <p className="font-medium">{participant.name}</p>
-                              <p className="text-xs text-gray-500">{participant.walletAddress}</p>
+                              <p className="text-xs text-gray-500">
+                                {XionWalletService.useWallet().address}
+                              </p>
                             </div>
                           </div>
                           <TrustScoreBadge score={participant.trustScore} />
@@ -365,22 +439,32 @@ const PlanDetail = () => {
                       ))}
 
                       {/* Placeholder for empty slots */}
-                      {Array(plan.total_participants - participants.length).fill(0).map((_, idx) => (
-                        <div key={`empty-${idx}`} className="flex items-center justify-between p-3 border rounded-lg border-dashed">
-                          <div className="flex items-center">
-                            <div className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-400">
-                              ?
+                      {Array(plan.total_participants - participants.length)
+                        .fill(0)
+                        .map((_, idx) => (
+                          <div
+                            key={`empty-${idx}`}
+                            className="flex items-center justify-between p-3 border rounded-lg border-dashed"
+                          >
+                            <div className="flex items-center">
+                              <div className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-400">
+                                ?
+                              </div>
+                              <div className="ml-3">
+                                <p className="font-medium text-gray-400">
+                                  Waiting for member
+                                </p>
+                                <p className="text-xs text-gray-400">
+                                  Open slot
+                                </p>
+                              </div>
                             </div>
-                            <div className="ml-3">
-                              <p className="font-medium text-gray-400">Waiting for member</p>
-                              <p className="text-xs text-gray-400">Open slot</p>
+                            <div className="text-sm text-gray-400">
+                              Slot {participants.length + idx + 1}/
+                              {plan.total_participants}
                             </div>
                           </div>
-                          <div className="text-sm text-gray-400">
-                            Slot {participants.length + idx + 1}/{plan.total_participants}
-                          </div>
-                        </div>
-                      ))}
+                        ))}
                     </div>
                   </CardContent>
                 </Card>
@@ -392,7 +476,8 @@ const PlanDetail = () => {
                   <CardHeader>
                     <CardTitle>Payout Schedule</CardTitle>
                     <CardDescription>
-                      The order may change based on trust scores as the plan progresses.
+                      The order may change based on trust scores as the plan
+                      progresses.
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -400,8 +485,11 @@ const PlanDetail = () => {
                       {payoutSchedule.map((payout, index) => (
                         <div
                           key={`payout-${index}`}
-                          className={`flex items-center justify-between p-3 border rounded-lg ${index === 0 ? 'bg-ajo-light/20 border-ajo-light' : ''
-                            }`}
+                          className={`flex items-center justify-between p-3 border rounded-lg ${
+                            index === 0
+                              ? "bg-ajo-light/20 border-ajo-light"
+                              : ""
+                          }`}
                         >
                           <div className="flex items-center">
                             <div className="h-8 w-8 rounded-full bg-[#E5E7EB] flex items-center justify-center text-[##5ba88e] font-medium">
@@ -410,20 +498,36 @@ const PlanDetail = () => {
                             <div className="ml-3">
                               {payout.participant ? (
                                 <>
-                                  <p className="font-medium">{payout.participant.name}</p>
+                                  <p className="font-medium">
+                                    {payout.participant.name}
+                                  </p>
                                   <div className="flex items-center text-xs text-gray-500">
-                                    <TrustScoreBadge score={payout.participant.trustScore} size="sm" showLabel={false} />
-                                    <span className="ml-1">Score: {payout.participant.trustScore}</span>
+                                    <TrustScoreBadge
+                                      score={payout.participant.trustScore}
+                                      size="sm"
+                                      showLabel={false}
+                                    />
+                                    <span className="ml-1">
+                                      Score: {payout.participant.trustScore}
+                                    </span>
                                   </div>
                                 </>
                               ) : (
-                                <p className="text-gray-400">Waiting for participant</p>
+                                <p className="text-gray-400">
+                                  Waiting for participant
+                                </p>
                               )}
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="font-medium">{plan.contributionAmount * plan.total_participants} XION</p>
-                            <p className="text-xs text-gray-500">{payout.date.toLocaleDateString()}</p>
+                            <p className="font-medium">
+                              {plan.contributionAmount *
+                                plan.total_participants}{" "}
+                              XION
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {payout.date.toLocaleDateString()}
+                            </p>
                           </div>
                         </div>
                       ))}

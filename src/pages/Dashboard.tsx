@@ -9,6 +9,7 @@ import {
   useAbstraxionSigningClient,
   useModal,
 } from "@burnt-labs/abstraxion";
+import XionWalletService from '@/services/blockchain';
 import PlanCard from '@/components/shared/PlanCard';
 import TrustScoreBadge from '@/components/shared/TrustScoreBadge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -20,12 +21,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from "@burnt-labs/ui";
 
 const explorerUrl = (address: string) => `https://www.mintscan.io/xion-testnet/address/${address}`;
-
-// Mock wallet data for UI
-const mockWallet = {
-  address: "xion1qv9w8...9k3j2h", // Use a realistic mock address
-  balance: 1234.56,
-};
 
 const ManageWalletModal = ({ open, onClose, address }: { open: boolean; onClose: () => void; address: string; }) => {
   const [copied, setCopied] = useState(false);
@@ -52,7 +47,7 @@ const ManageWalletModal = ({ open, onClose, address }: { open: boolean; onClose:
         <div className="space-y-4">
 			<div className="flex items-center justify-between">
 				<div className="text-sm text-gray-500">Balance</div>
-				<div className="font-semibold">{mockWallet.balance} XION</div>
+				<div className="font-semibold">-- XION</div>
 			</div>
           <div className="flex items-center gap-2 bg-gray-50 rounded px-3 py-2">
             <span className="font-mono text-xs break-all">
@@ -89,14 +84,14 @@ const ManageWalletModal = ({ open, onClose, address }: { open: boolean; onClose:
 };
 
 const Dashboard = () => {
-	const {data: account, isConnected } = useAbstraxionAccount();
+  const wallet = XionWalletService.useWallet();
   const [activeTab, setActiveTab] = useState('overview');
   const [showWalletModal, setShowWalletModal] = useState(false);
 
   // Mock data usage
   const user = defaultUser;
   const userPlans = getUserPlans(user.id);
-	const address = account?.bech32Address ? account?.bech32Address : "Not Connected";
+  const address = wallet.address ? wallet.address : "Not Connected";
 
   // Upcoming payout (mock)
   const upcomingPayout = mockPayouts.find(
@@ -112,7 +107,7 @@ const Dashboard = () => {
             <h1 className="text-3xl font-heading font-bold mb-2 text-vox-secondary">Dashboard</h1>
             <p className="text-vox-secondary/70 font-sans">Manage your savings plans and track your progress.</p>
           </div>
-          {isConnected && (
+          {wallet.isConnected && (
             <Link to="/create-plan" className="mt-4 md:mt-0">
               <Button className="gradient-bg text-white font-sans hover:opacity-90 transition-opacity">
                 <Plus size={16} className="mr-2" />
@@ -123,7 +118,7 @@ const Dashboard = () => {
         </div>
 
         <AnimatePresence mode="wait">
-          {!isConnected ? (
+          {!wallet.isConnected ? (
             <motion.div
               key="connect-wallet"
               initial={{ opacity: 0, y: 40 }}

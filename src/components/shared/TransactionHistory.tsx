@@ -1,41 +1,45 @@
-
-import { useEffect, useState } from 'react';
-import { useWallet } from '@/contexts/WalletContext';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Check, Clock, X } from 'lucide-react';
-import { format } from 'date-fns';
+import { useEffect, useState } from "react";
+import XionWalletService from "@/services/blockchain";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Check, Clock, X } from "lucide-react";
+import { format } from "date-fns";
 
 interface TransactionRecordDisplay {
   id: string;
   amount: number;
   description: string;
   timestamp: number;
-  type: 'join' | 'contribute' | 'withdraw';
+  type: "join" | "contribute" | "withdraw";
   planId?: string;
   roundNumber?: number;
-  status: 'pending' | 'confirmed' | 'failed';
+  status: "pending" | "confirmed" | "failed";
   txHash?: string;
 }
 
 const TransactionHistory = () => {
-  const { getTransactionHistory } = useWallet();
-  const [transactions, setTransactions] = useState<TransactionRecordDisplay[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { isConnected } = XionWalletService.useWallet();
+  // Placeholder: Replace with actual XION transaction history logic
+  const [transactions, setTransactions] = useState<TransactionRecordDisplay[]>(
+    []
+  );
+  const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    const loadTransactions = async () => {
-      try {
-        const history = await getTransactionHistory();
-        setTransactions(history);
-      } catch (error) {
-        console.error('Failed to load transaction history:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    loadTransactions();
-  }, [getTransactionHistory]);
+  // TODO: Implement fetching transaction history from XION backend or Abstraxion
+
+  if (!isConnected) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent Transactions</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-6 text-gray-500">
+            Connect your wallet to view transactions.
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -74,14 +78,14 @@ const TransactionHistory = () => {
       </CardHeader>
       <CardContent className="space-y-4">
         {transactions.map((tx) => (
-          <div 
-            key={tx.id} 
+          <div
+            key={tx.id}
             className="border rounded-lg p-3 flex justify-between items-center"
           >
             <div>
               <div className="font-medium">{tx.description}</div>
               <div className="text-sm text-gray-500">
-                {format(new Date(tx.timestamp), 'PPp')}
+                {format(new Date(tx.timestamp), "PPp")}
               </div>
               {tx.txHash && (
                 <div className="text-xs text-gray-400 truncate max-w-[200px]">
@@ -89,22 +93,30 @@ const TransactionHistory = () => {
                 </div>
               )}
             </div>
-            
+
             <div className="text-right">
               <div className="font-bold text-lg">{tx.amount} XION</div>
-              <div className={`flex items-center text-xs ${
-                tx.status === 'confirmed' 
-                  ? 'text-green-600' 
-                  : tx.status === 'failed' 
-                    ? 'text-red-600' 
-                    : 'text-amber-600'
-              }`}>
-                {tx.status === 'confirmed' ? (
-                  <><Check size={12} className="mr-1" /> Confirmed</>
-                ) : tx.status === 'failed' ? (
-                  <><X size={12} className="mr-1" /> Failed</>
+              <div
+                className={`flex items-center text-xs ${
+                  tx.status === "confirmed"
+                    ? "text-green-600"
+                    : tx.status === "failed"
+                    ? "text-red-600"
+                    : "text-amber-600"
+                }`}
+              >
+                {tx.status === "confirmed" ? (
+                  <>
+                    <Check size={12} className="mr-1" /> Confirmed
+                  </>
+                ) : tx.status === "failed" ? (
+                  <>
+                    <X size={12} className="mr-1" /> Failed
+                  </>
                 ) : (
-                  <><Clock size={12} className="mr-1" /> Pending</>
+                  <>
+                    <Clock size={12} className="mr-1" /> Pending
+                  </>
                 )}
               </div>
             </div>

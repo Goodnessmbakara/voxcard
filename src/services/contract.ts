@@ -1,7 +1,7 @@
-import { useWallet } from '@cardano-foundation/cardano-connect-with-wallet';
+import XionWalletService from './blockchain';
 import { Plan } from '../lib/mock-data';
 
-// Smart contract parameters33
+// Smart contract parameters
 interface ContractParams {
   name: string;
   description: string;
@@ -24,11 +24,8 @@ interface ContractDeployment {
 // Contract service class
 export class ContractService {
   private static instance: ContractService;
-  private wallet: any;
 
-  private constructor() {
-    this.wallet = useWallet();
-  }
+  private constructor() {}
 
   public static getInstance(): ContractService {
     if (!ContractService.instance) {
@@ -134,14 +131,14 @@ export class ContractService {
 
 // Hook to use the contract service
 export const useContract = () => {
-  const { isConnected, stakeAddress } = useWallet();
+  const wallet = XionWalletService.useWallet();
   const contractService = ContractService.getInstance();
 
   return {
-    isConnected,
-    stakeAddress,
+    isConnected: wallet.isConnected,
+    address: wallet.address,
     deployContract: async (plan: Plan) => {
-      if (!isConnected || !stakeAddress) {
+      if (!wallet.isConnected || !wallet.address) {
         throw new Error('Wallet not connected');
       }
 
@@ -154,7 +151,7 @@ export const useContract = () => {
         duration: plan.duration,
         trustScoreRequired: plan.trustScoreRequired,
         allowPartial: plan.allowPartial,
-        initiatorAddress: stakeAddress,
+        initiatorAddress: wallet.address,
       };
 
       return await contractService.deployContract(plan);

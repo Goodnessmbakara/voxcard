@@ -47,26 +47,67 @@ export const Navigation = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            <Link to="/dashboard" className="text-vox-secondary whitespace-nowrap hover:text-vox-primary transition-colors font-sans">
+            <Link
+              to="/dashboard"
+              className="text-vox-secondary whitespace-nowrap hover:text-vox-primary transition-colors font-sans"
+            >
               Dashboard
             </Link>
-            <Link to="/plans" className="text-vox-secondary whitespace-nowrap hover:text-vox-primary transition-colors font-sans">
+            <Link
+              to="/plans"
+              className="text-vox-secondary whitespace-nowrap hover:text-vox-primary transition-colors font-sans"
+            >
               Savings Plans
             </Link>
-            <Link to="/community" className="text-vox-secondary whitespace-nowrap hover:text-vox-primary transition-colors font-sans">
+            <Link
+              to="/community"
+              className="text-vox-secondary whitespace-nowrap hover:text-vox-primary transition-colors font-sans"
+            >
               Community
             </Link>
-            <Link to="/about" className="text-vox-secondary hover:text-vox-primary whitespace-nowrap transition-colors font-sans">
+            <Link
+              to="/about"
+              className="text-vox-secondary hover:text-vox-primary whitespace-nowrap transition-colors font-sans"
+            >
               About
             </Link>
-            <Button 
-				fullWidth 
-				onClick={() => setShowModal(true)} 
-				structure="base"
-				className="gradient-bg text-white"
-			>
-				{account?.bech32Address ? shortenAddress(account?.bech32Address) : "CONNECT"}
-			</Button>
+            {account?.bech32Address ? (
+              <div className="relative">
+                <Button
+                  fullWidth
+                  onClick={() => setShowDisconnect((v) => !v)}
+                  structure="base"
+                  className="gradient-bg text-white"
+                >
+                  {shortenAddress(account.bech32Address)}
+                </Button>
+                {showDisconnect && (
+                  <div
+                    ref={disconnectMenuRef}
+                    className="absolute right-0 mt-2 bg-white border rounded shadow z-50 min-w-[140px]"
+                  >
+                    <button
+                      className="block w-full px-4 py-2 text-left text-red-600 hover:bg-gray-100"
+                      onClick={() => {
+                        logout();
+                        setShowDisconnect(false);
+                      }}
+                    >
+                      Disconnect
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Button
+                fullWidth
+                onClick={() => setShowModal(true)}
+                structure="base"
+                className="gradient-bg text-white"
+              >
+                CONNECT
+              </Button>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -112,22 +153,40 @@ export const Navigation = () => {
 
                   {/* Wallet connect button for mobile */}
                   <div className="mt-8">
-					<Button 
-						fullWidth 
-						onClick={() => setShowModal(true)} 
-						structure="base"
-						className="gradient-bg text-white"
-					>
-						{account?.bech32Address ? shortenAddress(account?.bech32Address) : "CONNECT"}
-					</Button>	
-				</div>
+                    {account?.bech32Address ? (
+                      <>
+                        <div className="flex items-center gap-2 bg-gray-50 rounded px-3 py-2 mb-2">
+                          <span className="font-mono text-xs break-all">
+                            {shortenAddress(account.bech32Address)}
+                          </span>
+                        </div>
+                        <Button
+                          fullWidth
+                          onClick={logout}
+                          structure="base"
+                          className="border-red-500 text-red-600 hover:bg-red-50 mb-2"
+                        >
+                          Disconnect
+                        </Button>
+                      </>
+                    ) : (
+                      <Button
+                        fullWidth
+                        onClick={() => setShowModal(true)}
+                        structure="base"
+                        className="gradient-bg text-white"
+                      >
+                        CONNECT
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </SheetContent>
             </Sheet>
           </div>
         </div>
       </div>
-	  <Abstraxion onClose={() => setShowModal(false)} />
+      <Abstraxion onClose={() => setShowModal(false)} />
     </nav>
   );
 };
