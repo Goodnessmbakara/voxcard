@@ -1,73 +1,76 @@
-# Welcome to your Lovable project
+# VoxCard Savings Platform
 
-## Project info
+## Overview
 
-**URL**: https://lovable.dev/projects/23bb9ec0-f2fa-4f40-8f39-8bb3fa4512a6
+VoxCard is a decentralized savings platform built on XION (CosmWasm). It allows users to create, join, and manage savings plans (rotating savings circles) with smart contract security and optional gasless transactions.
 
-## How can I edit this code?
+## Architecture
 
-There are several ways of editing your application.
+- **Frontend:** React + Vite + TypeScript. All blockchain logic (contract deployment, transactions, wallet integration) is handled in the browser using the Abstraxion/XION wallet SDK.
+- **Backend:** Node.js/Express + PostgreSQL. Used only for storage and retrieval of plan metadata, user info, and transaction records. No blockchain logic or wallet code.
+- **Smart Contracts:** CosmWasm (Rust). All business logic for savings plans and treasury/gasless transactions is on-chain.
 
-**Use Lovable**
+## Key Features
+- User-created savings plans (no admin restriction)
+- Plan cancellation, update, and emergency withdrawal (by plan creator)
+- Partial payment support
+- Gasless transactions via treasury contract
+- Cleaned up legacy Cardano/Aiken code
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/23bb9ec0-f2fa-4f40-8f39-8bb3fa4512a6) and start prompting.
+## How to Deploy the Smart Contract
 
-Changes made via Lovable will be committed automatically to this repo.
+1. **Compile the contract:**
+   ```sh
+   cargo wasm
+   ```
 
-**Use your preferred IDE**
+2. **Optimize the WASM (recommended):**
+   ```sh
+   docker run --rm -v $(pwd):/code \
+     --mount type=volume,source=$(basename $(pwd))_cache,target=/code/target \
+     --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
+     cosmwasm/workspace-optimizer:0.12.11
+   ```
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+3. **Upload the contract to XION:**
+   ```sh
+   wasmd tx wasm store artifacts/contract.wasm --from <your-key> --gas auto --gas-adjustment 1.3 --node <node-url> --chain-id <chain-id>
+   ```
+   - Get the `codeId` from the transaction result and use it in your frontend for instantiating new plans.
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+4. **Instantiate contracts from the frontend:**
+   - The React app uses the wallet to deploy and interact with contracts. The backend only stores metadata.
 
-Follow these steps:
+## How to Run Locally
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+# Clone the repository
+https://github.com/Goodnessmbakara/voxcard.git
+cd voxcard
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# Install dependencies
+pnpm install
 
-# Step 3: Install the necessary dependencies.
-npm i
+# Start the frontend
+dpnm dev
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+# Start the backend (in another terminal)
+cd backend
+pnpm install
+pnpm dev
 ```
 
-**Edit a file directly in GitHub**
+## Cleanup Notes
+- All Cardano/Aiken (Plutus/Aiken) code and dependencies have been removed. Only CosmWasm contracts are used.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Technologies Used
+- Vite, TypeScript, React, shadcn-ui, Tailwind CSS
+- CosmWasm (Rust), XION, Abstraxion wallet
+- Node.js, Express, PostgreSQL
 
-**Use GitHub Codespaces**
+## Contributing
+Pull requests are welcome! For major changes, please open an issue first to discuss what you would like to change.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+---
 
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/23bb9ec0-f2fa-4f40-8f39-8bb3fa4512a6) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+For more details, see the code and comments in the repository.
