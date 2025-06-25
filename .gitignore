@@ -29,3 +29,4 @@ package-lock.json
 .cargo
 .circleci
 .github
+.editorconfig
