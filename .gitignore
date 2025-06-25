@@ -26,3 +26,6 @@ pnpm-lock.yaml
 pnpm-workspace.yaml
 .env
 package-lock.json
+.cargo
+.circleci
+.github
