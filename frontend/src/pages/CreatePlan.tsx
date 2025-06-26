@@ -89,6 +89,10 @@ const CreatePlan = () => {
         setIsSubmitting(false);
         return;
       }
+
+      console.log("Starting plan creation with values:", values);
+      console.log("Wallet address:", address);
+
       // Deploy contract using wallet
       const planParams = {
         name: values.name,
@@ -101,14 +105,35 @@ const CreatePlan = () => {
         allowPartial: values.allowPartial,
         codeId: 1, // TODO: Replace with actual codeId for your deployed contract
       };
+
+      console.log("Deploying contract with params:", planParams);
+      
       const { address: contractAddress, txHash: contractTxHash } =
         await deployContract(planParams);
+      
+      console.log("Contract deployed successfully:", { contractAddress, contractTxHash });
+
       // Store plan in backend
-      await planApi.createPlan({
-        ...planParams,
+      const planData = {
+        name: values.name,
+        description: values.description,
+        maxMembers: values.totalParticipants,
+        contributionAmount: values.contributionAmount,
+        frequency: values.frequency,
+        duration: values.duration,
+        trustScoreRequired: values.trustScoreRequired,
+        allowPartial: values.allowPartial,
         contractAddress,
         contractTxHash,
-      });
+        initiator: address,
+      };
+
+      console.log("Sending plan data to backend:", planData);
+      
+      const createdPlan = await planApi.createPlan(planData);
+      
+      console.log("Plan created in backend:", createdPlan);
+
       toast({
         title: "Plan created successfully!",
         description:

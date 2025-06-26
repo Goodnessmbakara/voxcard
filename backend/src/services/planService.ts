@@ -8,6 +8,8 @@ export class PlanService {
   }
 
   async createPlan(planData: Omit<Plan, 'id' | 'createdAt'>): Promise<Plan> {
+    console.log('PlanService.createPlan called with:', planData);
+    
     const {
       name,
       description,
@@ -23,6 +25,8 @@ export class PlanService {
       contractAddress,
       contractTxHash,
     } = planData;
+
+    console.log('Contract fields in service:', { contractAddress, contractTxHash });
 
     const result = await pool.query(
       `INSERT INTO plans (
@@ -48,6 +52,7 @@ export class PlanService {
       ]
     );
 
+    console.log('Database result:', result.rows[0]);
     return result.rows[0];
   }
 
