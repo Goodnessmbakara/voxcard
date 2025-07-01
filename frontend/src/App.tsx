@@ -12,14 +12,15 @@ import CreatePlan from "./pages/CreatePlan";
 import NotFound from "./pages/NotFound";
 import About from './pages/About';
 import { AbstraxionProvider } from "@burnt-labs/abstraxion";
+import { ContractProvider } from "./context/ContractProvider";
 
 
 const queryClient = new QueryClient();
 
-const treasuryConfig = {
+const Config = {
   treasury: import.meta.env.VITE_TREASURY_ADDRESS,
-  rpcUrl: import.meta.env.VITE_RPC_URL || "https://rpc.xion-testnet-2.burnt.com:443",
-  restUrl: import.meta.env.VITE_REST_URL || "https://api.xion-testnet-2.burnt.com",
+  rpcUrl: "https://rpc.xion-testnet-2.burnt.com/",
+  restUrl: "https://api.xion-testnet-2.burnt.com/"
 };
 
 const App = () => {
@@ -30,18 +31,21 @@ const App = () => {
         <Sonner />
         <BrowserRouter>
 			<AbstraxionProvider
-			config={treasuryConfig}>
-				<AnimatePresence mode="wait">
-				<Routes>
-					<Route path="/" element={<Home />} />
-					<Route path="/dashboard" element={<Dashboard />} />
-					<Route path="/create-plan" element={<CreatePlan />} />
-					<Route path="/about" element={<About />} />
-					<Route path="*" element={<NotFound />} />
-					<Route path="/plans" element={<Plans />} />
-					<Route path="/plans/:planId" element={<PlanDetail />} />
-				</Routes>
-				</AnimatePresence>
+				config={Config}
+				>
+				<ContractProvider>
+					<AnimatePresence mode="wait">
+					<Routes>
+						<Route path="/" element={<Home />} />
+						<Route path="/dashboard" element={<Dashboard />} />
+						<Route path="/create-plan" element={<CreatePlan />} />
+						<Route path="/about" element={<About />} />
+						<Route path="*" element={<NotFound />} />
+						<Route path="/plans" element={<Plans />} />
+						<Route path="/plans/:planId" element={<PlanDetail />} />
+					</Routes>
+					</AnimatePresence>
+				</ContractProvider>
 			</AbstraxionProvider>
         </BrowserRouter>
       </TooltipProvider>

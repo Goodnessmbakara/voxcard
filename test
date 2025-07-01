@@ -1,0 +1,51 @@
+cargo run --bin schema
+
+docker run --rm -v "$(pwd)":/code   --mount type=volume,source="$(basename "$(pwd)")_cache",target=/target   --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry   cosmwasm/optimizer:0.16.0
+
+xiond tx wasm store artifacts/ajo_contract.wasm   --from knox   --gas auto --gas-adjustment 1.3   --node https://rpc.testnet.xion.network:443   --chain-id xion-testnet-2 --broadcast-mode block   --output json
+
+RES=$(xiond tx wasm store ./artifacts/ajo_contract.wasm \
+      --chain-id xion-testnet-2 \
+      --gas-adjustment 1.3 \
+      --gas-prices 0.001uxion \
+      --gas auto \
+      -y --output json \
+      --node https://rpc.xion-testnet-2.burnt.com:443 \
+      --from $WALLET)
+gas estimate: 2147377
+knox@knox:~/Documents/voxcard/ajo-contract$ echo $RES
+{"height":"0","txhash":"049F1B38A11F9E26BCCCC33DB880581967B9D325DF6133DBC9334B66D852DC19","codespace":"","code":0,"data":"","raw_log":"","logs":[],"info":"","gas_wanted":"0","gas_used":"0","tx":null,"timestamp":"","events":[]}
+
+ echo $CODE_ID
+ 1355
+
+ xiond tx wasm instantiate $CODE_ID "{}" \
+  --from $WALLET \
+  --label "ajo-contract" \
+  --gas-prices 0.025uxion \
+  --gas auto \
+  --gas-adjustment 1.3 \
+  -y --no-admin \
+  --chain-id xion-testnet-2 \
+  --node https://rpc.xion-testnet-2.burnt.com:443
+gas estimate: 191843
+code: 0
+codespace: ""
+data: ""
+events: []
+gas_used: "0"
+gas_wanted: "0"
+height: "0"
+info: ""
+logs: []
+raw_log: ""
+timestamp: ""
+tx: null
+txhash: 5EF950A3BD815A4EC3086974664CDAB40E5D5F18591DD14426856CCF6DEE22D4
+knox@knox:~/Documents/voxcard/ajo-contract$ TXHASH=5EF950A3BD815A4EC3086974664CDAB40E5D5F18591DD14426856CCF6DEE22D4
+knox@knox:~/Documents/voxcard/ajo-contract$ CONTRACT=$(xiond query tx $TXHASH \
+  --node https://rpc.xion-testnet-2.burnt.com:443 \
+  --output json | jq -r '.events[] | select(.type == "instantiate") | .attributes[] | select(.key == "_contract_address") | .value')
+knox@knox:~/Documents/voxcard/ajo-contract$ echo $CONTRACT
+xion1c5ygfjw3rnpncmru2edp5qea3ex93ztecj54uqmkf9yye0s9k48spu4x3s
+

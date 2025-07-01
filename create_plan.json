@@ -1,0 +1,12 @@
+{
+  "CreatePlan": {
+    "name": "CLI Test Plan",
+    "description": "Plan from CLI with non-admin wallet",
+    "total_participants": 3,
+    "contribution_amount": "1000",
+    "frequency": "Monthly",
+    "duration_months": 6,
+    "trust_score_required": 0,
+    "allow_partial": true
+  }
+}

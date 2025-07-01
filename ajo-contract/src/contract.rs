@@ -48,7 +48,6 @@ pub fn execute(
             allow_partial,
         } => execute_create_plan(
             deps,
-            info,
             name,
             description,
             total_participants,
@@ -70,7 +69,6 @@ pub fn execute(
 
 fn execute_create_plan(
     deps: DepsMut,
-    info: MessageInfo,
     name: String,
     description: String,
     total_participants: u32,
@@ -80,11 +78,6 @@ fn execute_create_plan(
     trust_score_required: u32,
     allow_partial: bool,
 ) -> Result<Response, ContractError> {
-    let config = CONFIG.load(deps.storage)?;
-    if info.sender != config.admin {
-        return Err(ContractError::Unauthorized("Only admin can create plans".to_string()));
-    }
-
     if !(2..=100).contains(&total_participants)
         || !(Uint128::from(10u128)..=Uint128::from(100000u128)).contains(&contribution_amount)
         || !(1..=36).contains(&duration_months)

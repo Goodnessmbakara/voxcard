@@ -36,8 +36,7 @@ import { emptyPlan } from "@/lib/mock-data";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { planApi } from "@/services/api";
-import { useContract } from "@/services/contract";
+import { useContract } from "../context/ContractProvider";
 
 // Form schema with validation
 const formSchema = z.object({
@@ -61,7 +60,7 @@ const CreatePlan = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { deployContract, isConnected, address } = useContract();
+  const { createPlan, address } = useContract();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -80,47 +79,28 @@ const CreatePlan = () => {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
     try {
-      if (!isConnected || !address) {
-        toast({
-          title: "Wallet not connected",
-          description: "Please connect your wallet to deploy the contract.",
-          variant: "destructive",
-        });
-        setIsSubmitting(false);
-        return;
-      }
-      // Deploy contract using wallet
-      const planParams = {
+      await createPlan({
         name: values.name,
         description: values.description,
-        totalParticipants: values.totalParticipants,
-        contributionAmount: values.contributionAmount,
+        total_participants: values.totalParticipants,
+        contribution_amount: values.contributionAmount.toString(),
         frequency: values.frequency,
-        duration: values.duration,
-        trustScoreRequired: values.trustScoreRequired,
-        allowPartial: values.allowPartial,
-        codeId: 1, // TODO: Replace with actual codeId for your deployed contract
-      };
-      const { address: contractAddress, txHash: contractTxHash } =
-        await deployContract(planParams);
-      // Store plan in backend
-      await planApi.createPlan({
-        ...planParams,
-        contractAddress,
-        contractTxHash,
+        duration_months: values.duration,
+        trust_score_required: values.trustScoreRequired,
+        allow_partial: values.allowPartial,
       });
+
       toast({
-        title: "Plan created successfully!",
-        description:
-          "Your plan has been created and is now open for participants.",
+        title: "Plan created on chain!",
+        description: "Transaction submitted successfully.",
       });
+
       navigate("/dashboard");
-    } catch (error) {
-      console.error("Error creating plan:", error);
+    } catch (err) {
+      console.error(err);
       toast({
-        title: "Error creating plan",
-        description:
-          "There was a problem creating your plan. Please try again.",
+        title: "Blockchain error",
+        description: "Failed to create plan. Check logs and retry.",
         variant: "destructive",
       });
     } finally {
