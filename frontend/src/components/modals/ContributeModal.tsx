@@ -122,7 +122,7 @@ export const ContributeModal = ({
         variant: "destructive",
       });
     } finally {
-      setIsSubmitting(false);
+    setIsSubmitting(false);
     }
   };
 

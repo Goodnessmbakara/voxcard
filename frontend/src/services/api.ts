@@ -17,6 +17,9 @@ export interface CreatePlanData {
   duration: number;
   trustScoreRequired: number;
   allowPartial: boolean;
+  contractAddress?: string;
+  contractTxHash?: string;
+  initiator?: string;
 }
 
 export const planApi = {

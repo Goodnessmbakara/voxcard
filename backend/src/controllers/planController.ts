@@ -21,6 +21,8 @@ export class PlanController {
 
   createPlan = async (req: Request, res: Response): Promise<void> => {
     try {
+      console.log('Received plan creation request:', req.body);
+      
       const {
         name,
         description,
@@ -36,6 +38,8 @@ export class PlanController {
         contractAddress,
         contractTxHash,
       } = req.body;
+
+      console.log('Extracted contract fields:', { contractAddress, contractTxHash });
 
       if (!name || !contributionAmount || !maxMembers || !duration) {
         res.status(400).json({ error: 'Required fields are missing' });
@@ -62,7 +66,10 @@ export class PlanController {
         status: 'Open',
       };
 
+      console.log('Plan data to be saved:', planData);
+
       const newPlan = await this.planService.createPlan(planData);
+      console.log('Plan created successfully:', newPlan);
       res.status(201).json(newPlan);
     } catch (error) {
       console.error('Error creating plan:', error);
