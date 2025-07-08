@@ -7,7 +7,7 @@ use cosmwasm_std::{
 
 use crate::error::ContractError;
 use crate::msg::{ExecuteMsg, InstantiateMsg, ParticipantStatus, PlanResponse, QueryMsg};
-use crate::state::{Config, Frequency, Plan, CONFIG, PLAN_COUNT, PLANS, CONTRIBUTIONS};
+use crate::state::{Config, Frequency, Plan, CONFIG, PLAN_COUNT, PLANS, PLANS_BY_CREATOR, CONTRIBUTIONS};
 use cw2::set_contract_version;
 
 const CONTRACT_NAME: &str = "crates.io:ajo-contract";
@@ -48,6 +48,7 @@ pub fn execute(
             allow_partial,
         } => execute_create_plan(
             deps,
+			info,
             name,
             description,
             total_participants,
@@ -69,6 +70,7 @@ pub fn execute(
 
 fn execute_create_plan(
     deps: DepsMut,
+	info: MessageInfo,
     name: String,
     description: String,
     total_participants: u32,
@@ -95,6 +97,8 @@ fn execute_create_plan(
     };
 
     let plan_id = PLAN_COUNT.load(deps.storage)? + 1;
+    let participants = vec![info.sender.to_string()];
+
     let plan = Plan {
         id: plan_id,
         name,
@@ -105,14 +109,22 @@ fn execute_create_plan(
         duration_months,
         trust_score_required,
         allow_partial,
-        participants: vec![],
+        participants,
         current_cycle: 0,
         is_active: false,
         payout_index: 0,
+		created_by: info.sender.clone(),
     };
 
     PLANS.save(deps.storage, plan_id, &plan)?;
     PLAN_COUNT.save(deps.storage, &plan_id)?;
+	
+	// Update Creator list
+	let mut ids = PLANS_BY_CREATOR
+		.may_load(deps.storage, &info.sender)?
+		.unwrap_or_default();
+	ids.push(plan_id);
+	PLANS_BY_CREATOR.save(deps.storage, &info.sender, &ids)?;
 
     Ok(Response::new()
         .add_attribute("method", "create_plan")
@@ -277,6 +289,10 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
                 .map_err(|e| StdError::generic_err(e.to_string()))?;
             to_json_binary(&status)
         }
+		QueryMsg::GetPlansByCreator { creator } => {
+			let res = query_plans_by_creator(deps, creator)?;
+			to_json_binary(&res)
+		}
     }
 }
 
@@ -301,4 +317,21 @@ fn query_participant_status(
         contributed,
         received_payout: received,
     })
+}
+
+fn query_plans_by_creator(
+	deps: Deps,
+	creator: String
+) -> StdResult<Vec<PlanResponse>> {
+    let creator_addr = deps.api.addr_validate(&creator)?;
+    let ids = PLANS_BY_CREATOR.may_load(deps.storage, &creator_addr)?.unwrap_or_default();
+
+    let mut plans = Vec::new();
+    for id in ids {
+        if let Some(plan) = PLANS.may_load(deps.storage, id)? {
+            plans.push(PlanResponse { plan: Some(plan) });
+        }
+    }
+
+    Ok(plans)
 }

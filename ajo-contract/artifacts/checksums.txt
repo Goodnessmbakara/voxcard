@@ -1,1 +1,1 @@
-0dc153659faac44bd5890e232cca43536a12778cf8edeaf2ca61bf9c6bafe4d7  ajo_contract.wasm
+e9e125735905a79f69ea0d1b3e3d0071bae9daed0726e5118ef1bb61187a0e58  ajo_contract.wasm

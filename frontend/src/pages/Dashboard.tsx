@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Layout from '@/components/layout/Layout';
 import { mockPlans, mockPayouts, getUserPlans, defaultUser } from '@/lib/mock-data';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,6 +19,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { shortenAddress } from '@/services/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from "@burnt-labs/ui";
+import { useContract } from "../context/ContractProvider";
+import { Plan } from '../types/utils';
+
 
 const explorerUrl = (address: string) => `https://www.mintscan.io/xion-testnet/address/${address}`;
 
@@ -84,14 +87,32 @@ const ManageWalletModal = ({ open, onClose, address }: { open: boolean; onClose:
 };
 
 const Dashboard = () => {
+	const { account, getPlansByCreator } = useContract();
+	const [userPlans, setUserPlans] = useState<Plan[]>([]);
   const wallet = XionWalletService.useWallet();
+
+
   const [activeTab, setActiveTab] = useState('overview');
   const [showWalletModal, setShowWalletModal] = useState(false);
 
   // Mock data usage
   const user = defaultUser;
-  const userPlans = getUserPlans(user.id);
   const address = wallet.address ? wallet.address : "Not Connected";
+
+	useEffect(() => {
+		const fetchPlans = async () => {
+			if (account) {
+			const response = await getPlansByCreator(account);
+
+			// FIX: flatten out the `plan` key
+			const normalizedPlans = response.map((item: any) => item.plan);
+
+			setUserPlans(normalizedPlans);
+			}
+		};
+		fetchPlans();
+	}, [account]);
+
 
   // Upcoming payout (mock)
   const upcomingPayout = mockPayouts.find(
@@ -232,7 +253,7 @@ const Dashboard = () => {
                           <div className="space-y-6">
                             <h2 className="text-xl font-heading font-semibold text-vox-secondary">Your Active Plans</h2>
                             {userPlans.map((plan) => (
-                              <PlanCard key={plan.id} plan={plan} isParticipant />
+                              <PlanCard key={plan.id} plan={plan} />
                             ))}
                           </div>
                         ) : (
@@ -269,8 +290,8 @@ const Dashboard = () => {
                       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
                         <h2 className="text-xl font-heading font-semibold text-vox-secondary">All Your Plans</h2>
                         {userPlans.length > 0 ? (
-                          userPlans.map((plan) => (
-                            <PlanCard key={plan.id} plan={plan} isParticipant />
+                          userPlans.map((p) => (
+                            <PlanCard key={p.id} plan={p} />
                           ))
                         ) : (
                           <div className="text-center py-12">

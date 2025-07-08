@@ -43,6 +43,10 @@ pub enum QueryMsg {
         plan_id: u64,
         participant: String,
     },
+	#[returns(Vec<PlanResponse>)]
+	GetPlansByCreator {
+		creator: String
+	},
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

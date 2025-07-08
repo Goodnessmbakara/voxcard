@@ -37,23 +37,19 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useContract } from "../context/ContractProvider";
+import { CreatePlanInput } from "@/types/utils";
+
 
 // Form schema with validation
 const formSchema = z.object({
-  name: z
-    .string()
-    .min(3, { message: "Plan name must be at least 3 characters" })
-    .max(50),
-  description: z
-    .string()
-    .min(10, { message: "Please provide a more detailed description" })
-    .max(500),
-  totalParticipants: z.number().min(2).max(100),
-  contributionAmount: z.number().min(10).max(100000),
+  name: z.string().min(3).max(50),
+  description: z.string().min(10).max(500),
+  total_participants: z.number().min(2).max(100),
+  contribution_amount: z.string().min(1), // string for contract
   frequency: z.enum(["Daily", "Weekly", "Monthly"]),
-  duration: z.number().min(1).max(36),
-  trustScoreRequired: z.number().min(0).max(100),
-  allowPartial: z.boolean().default(false),
+  duration_months: z.number().min(1).max(36),
+  trust_score_required: z.number().min(0).max(100),
+  allow_partial: z.boolean().default(false),
 });
 
 const CreatePlan = () => {
@@ -65,30 +61,22 @@ const CreatePlan = () => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: emptyPlan.name,
-      description: emptyPlan.description,
-      totalParticipants: emptyPlan.totalParticipants,
-      contributionAmount: emptyPlan.contributionAmount,
-      frequency: emptyPlan.frequency,
-      duration: emptyPlan.duration,
-      trustScoreRequired: emptyPlan.trustScoreRequired,
-      allowPartial: false,
-    },
+		name: "",
+		description: "",
+		total_participants: 2,
+		contribution_amount: "10",
+		frequency: "Monthly",
+		duration_months: 1,
+		trust_score_required: 0,
+		allow_partial: false,
+	},
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
+	console.log(values)
     try {
-      await createPlan({
-        name: values.name,
-        description: values.description,
-        total_participants: values.totalParticipants,
-        contribution_amount: values.contributionAmount.toString(),
-        frequency: values.frequency,
-        duration_months: values.duration,
-        trust_score_required: values.trustScoreRequired,
-        allow_partial: values.allowPartial,
-      });
+      await createPlan(values as CreatePlanInput);
 
       toast({
         title: "Plan created on chain!",
@@ -177,7 +165,7 @@ const CreatePlan = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <FormField
                     control={form.control}
-                    name="totalParticipants"
+                    name="total_participants"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Number of Participants</FormLabel>
@@ -197,7 +185,7 @@ const CreatePlan = () => {
 
                   <FormField
                     control={form.control}
-                    name="contributionAmount"
+                    name="contribution_amount"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Contribution Amount (XION)</FormLabel>
@@ -206,7 +194,7 @@ const CreatePlan = () => {
                             type="number"
                             {...field}
                             onChange={(e) =>
-                              field.onChange(parseInt(e.target.value) || 10)
+                              field.onChange(e.target.value)
                             }
                           />
                         </FormControl>
@@ -245,7 +233,7 @@ const CreatePlan = () => {
 
                   <FormField
                     control={form.control}
-                    name="duration"
+                    name="duration_months"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Duration (months)</FormLabel>
@@ -266,7 +254,7 @@ const CreatePlan = () => {
 
                 <FormField
                   control={form.control}
-                  name="trustScoreRequired"
+                  name="trust_score_required"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
@@ -291,7 +279,7 @@ const CreatePlan = () => {
 
                 <FormField
                   control={form.control}
-                  name="allowPartial"
+                  name="allow_partial"
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                       <div className="space-y-0.5">

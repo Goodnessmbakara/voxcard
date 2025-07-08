@@ -1,22 +1,4 @@
-export interface Plan {
-    id: string;
-    name: string;
-    description: string;
-    initiator: string;
-    total_participants: number;
-    currentParticipants: number;
-    contributionAmount: number;
-    max_members: number;
-    members: string[];
-    contributions: string[];
-    frequency: 'Daily' | 'Weekly' | 'Biweekly' | 'Monthly';
-    duration: number; // in months
-    totalAmount: number;
-    status: 'Open' | 'Active' | 'Completed';
-    trustScoreRequired: number;
-    created_at: Date;
-    allowPartial: boolean; // Added the allowPartial property
-  }
+
   
   export interface User {
     id: string;
@@ -51,15 +33,15 @@ export interface Plan {
       id: 'plan-1',
       name: 'Community Savings Circle',
       description: 'A monthly saving plan for our local community members.',
-      initiator: 'Ahmed',
+      created_by: 'Ahmed',
       total_participants: 12,
-      currentParticipants: 8,
+      participants: 8,
       members: ['user-1', 'user-2'],
-      contributionAmount: 100,
+      contribution_amount: 100,
       contributions: ['contrib-1', 'contrib-2'],
       max_members: 12,
       frequency: 'Monthly',
-      duration: 12,
+      duration_months: 12,
       totalAmount: 12 * 100 * 12,
       status: 'Open',
       trustScoreRequired: 75,
@@ -70,15 +52,15 @@ export interface Plan {
       id: 'plan-2',
       name: 'Business Investment Pool',
       description: 'Weekly contributions to help members start small businesses.',
-      initiator: 'Ngozi',
+      created_by: 'Ngozi',
       total_participants: 8,
       max_members: 8,
       contributions: ['contrib-3', 'contrib-4'],
       members: ['user-1', 'user-2'],
-      currentParticipants: 8,
-      contributionAmount: 50,
+      participants: 8,
+      contribution_amount: 50,
       frequency: 'Weekly',
-      duration: 6,
+      duration_months: 6,
       totalAmount: 6 * 4 * 50 * 8,
       status: 'Active',
       trustScoreRequired: 85,
@@ -89,15 +71,15 @@ export interface Plan {
       id: 'plan-3',
       name: 'Emergency Fund Group',
       description: 'A safety net for unexpected expenses among friends.',
-      initiator: 'Kofi',
+      created_by: 'Kofi',
       total_participants: 6,
-      currentParticipants: 4,
+      participants: 4,
       contributions: ['contrib-3', 'contrib-4'],
-      contributionAmount: 75,
+      contribution_amount: 75,
       max_members: 6,
       members: ['user-1', 'user-2'],
       frequency: 'Biweekly',
-      duration: 3,
+      duration_months: 3,
       totalAmount: 3 * 2 * 75 * 6,
       status: 'Open',
       trustScoreRequired: 70,
@@ -231,9 +213,9 @@ export interface Plan {
     name: '',
     description: '',
     totalParticipants: 5,
-    contributionAmount: 100,
+    contribution_amount: 100,
     frequency: 'Monthly' as const,
-    duration: 6,
+    duration_months: 6,
     trustScoreRequired: 70,
     allowPartial: true,
   };
