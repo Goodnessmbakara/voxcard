@@ -11,8 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Plan } from "@/lib/mock-data";
-import { Check, Coins } from "lucide-react";
+import { Plan } from "@/types/utils";
+import { Coins } from "lucide-react";
 import XionWalletService from "@/services/blockchain";
 import { useContract } from "@/services/contract";
 import { Switch } from "@/components/ui/switch";
@@ -32,39 +32,36 @@ export const ContributeModal = ({
 }: ContributeModalProps) => {
   const { toast } = useToast();
   const { isConnected } = XionWalletService.useWallet();
-  const [amount, setAmount] = useState(plan.contributionAmount.toString());
+  const contractService = useContract();
+
+  const [amount, setAmount] = useState(String(plan.contribution_amount));
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [useGasless, setUseGasless] = useState(false);
   const [isGaslessAvailable, setIsGaslessAvailable] = useState(false);
-  const contractService = useContract();
 
   useEffect(() => {
-    // Check if gasless transactions are available for this contract
-    const checkGaslessAvailability = async () => {
-      try {
-        const available = await contractService.isGaslessAvailable(plan.id);
-        setIsGaslessAvailable(available);
-      } catch (error) {
-        console.error("Error checking gasless availability:", error);
-        setIsGaslessAvailable(false);
-      }
-    };
-
     if (open) {
+      setAmount(String(plan.contribution_amount)); // Reset amount when modal opens
+      const checkGaslessAvailability = async () => {
+        try {
+          const available = await contractService.isGaslessAvailable(plan.id);
+          setIsGaslessAvailable(available);
+        } catch (error) {
+          console.error("Error checking gasless availability:", error);
+          setIsGaslessAvailable(false);
+        }
+      };
       checkGaslessAvailability();
     }
-  }, [open, plan.id]);
+  }, [open, plan.id, plan.contribution_amount, contractService]);
 
-  // Handle amount change
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     if (/^\d*\.?\d*$/.test(value)) {
-      // Allow only numbers and a decimal point
       setAmount(value);
     }
   };
 
-  // Handle the contribution submission
   const handleContribute = async () => {
     const contributionAmount = parseFloat(amount);
 
@@ -86,18 +83,16 @@ export const ContributeModal = ({
       return;
     }
 
-    setIsSubmitting(true);
-
-    // If the plan doesn't allow partial payments, enforce the full amount
-    if (!plan.allowPartial && contributionAmount < plan.contributionAmount) {
+    if (!plan.allow_partial && contributionAmount < Number(plan.contribution_amount)) {
       toast({
         title: "Full payment required",
-        description: `This plan requires the full contribution amount of ${plan.contributionAmount} XION`,
+        description: `This plan requires the full contribution amount of ${plan.contribution_amount} XION`,
         variant: "destructive",
       });
-      setIsSubmitting(false);
       return;
     }
+
+    setIsSubmitting(true);
 
     try {
       const result = await contractService.submitContribution(
@@ -113,7 +108,6 @@ export const ContributeModal = ({
       });
 
       onClose();
-      setAmount("");
     } catch (error) {
       console.error("Error submitting contribution:", error);
       toast({
@@ -122,7 +116,7 @@ export const ContributeModal = ({
         variant: "destructive",
       });
     } finally {
-    setIsSubmitting(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -146,15 +140,13 @@ export const ContributeModal = ({
               value={amount}
               onChange={handleAmountChange}
             />
-            {plan.allowPartial && (
+            {plan.allow_partial ? (
               <p className="text-sm text-gray-500">
-                This plan allows partial payments. Minimum contribution: 1 XION
+                Partial payments allowed. Minimum contribution: 1 XION
               </p>
-            )}
-            {!plan.allowPartial && (
+            ) : (
               <p className="text-sm text-gray-500">
-                This plan requires the full payment of {plan.contributionAmount}{" "}
-                XION
+                Full payment required: {plan.contribution_amount} XION
               </p>
             )}
           </div>
@@ -179,10 +171,10 @@ export const ContributeModal = ({
                 <h3 className="text-sm font-medium text-green-800">
                   Contribution Information
                 </h3>
-                <div className="mt-2 text-sm text-green-700">
-                  <p>• Expected contribution: {plan.contributionAmount} XION</p>
+                <div className="mt-2 text-sm text-green-700 space-y-1">
+                  <p>• Expected contribution: {plan.contribution_amount} XION</p>
                   <p>• Payment frequency: {plan.frequency.toLowerCase()}</p>
-                  {plan.allowPartial && <p>• Partial payments are allowed</p>}
+                  {plan.allow_partial && <p>• Partial payments are allowed</p>}
                   <p>• Your contribution will be locked in a smart contract</p>
                 </div>
               </div>

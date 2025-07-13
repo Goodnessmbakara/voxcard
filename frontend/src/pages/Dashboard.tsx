@@ -247,44 +247,59 @@ const Dashboard = () => {
                       <TabsTrigger value="contributions">Contributions</TabsTrigger>
                     </TabsList>
 
-                    <TabsContent value="overview">
-                      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-                        {userPlans.length > 0 ? (
-                          <div className="space-y-6">
-                            <h2 className="text-xl font-heading font-semibold text-vox-secondary">Your Active Plans</h2>
-                            {userPlans.map((plan) => (
-                              <PlanCard key={plan.id} plan={plan} />
-                            ))}
-                          </div>
-                        ) : (
-                          <Card>
-                            <CardHeader>
-                              <CardTitle className="font-heading text-vox-primary">Welcome to VoxCard!</CardTitle>
-                              <CardDescription className="text-vox-secondary/70 font-sans">
-                                You haven't joined any savings plans yet. Get started by creating or joining a plan.
-                              </CardDescription>
-                            </CardHeader>
-                            <CardContent className="flex flex-col items-center py-6">
-                              <div className="w-24 h-24 rounded-full bg-vox-primary/10 flex items-center justify-center mb-4">
-                                <Wallet size={36} className="text-vox-primary" />
-                              </div>
-                              <p className="text-center text-vox-secondary/70 mb-6 max-w-md font-sans">
-                                Join a community savings plan to start pooling resources with others,
-                                or create your own plan and invite friends and family.
-                              </p>
-                            </CardContent>
-                            <CardFooter className="flex flex-col sm:flex-row gap-3">
-                              <Link to="/plans" className="w-full sm:w-auto">
-                                <Button className="w-full font-sans border-vox-primary text-vox-primary hover:bg-vox-primary/10">Browse Plans</Button>
-                              </Link>
-                              <Link to="/create-plan" className="w-full sm:w-auto">
-                                <Button className="w-full gradient-bg text-white font-sans hover:opacity-90 transition-opacity">Create a Plan</Button>
-                              </Link>
-                            </CardFooter>
-                          </Card>
-                        )}
-                      </motion.div>
-                    </TabsContent>
+					<TabsContent value="overview">
+						<motion.div
+							initial={{ opacity: 0, y: 20 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ duration: 0.4 }}
+						>
+							{userPlans.filter((plan) => plan.is_active).length > 0 ? (
+							<div className="space-y-6">
+								<h2 className="text-xl font-heading font-semibold text-vox-secondary">
+								Your Active Plans
+								</h2>
+								{userPlans
+								.filter((plan) => plan.is_active)
+								.map((plan) => (
+									<PlanCard key={plan.id} plan={plan} />
+								))}
+							</div>
+							) : (
+							<Card>
+								<CardHeader>
+								<CardTitle className="font-heading text-vox-primary">
+									Welcome to VoxCard!
+								</CardTitle>
+								<CardDescription className="text-vox-secondary/70 font-sans">
+									You haven't joined any active savings plans yet. Get started by creating or joining a plan.
+								</CardDescription>
+								</CardHeader>
+								<CardContent className="flex flex-col items-center py-6">
+								<div className="w-24 h-24 rounded-full bg-vox-primary/10 flex items-center justify-center mb-4">
+									<Wallet size={36} className="text-vox-primary" />
+								</div>
+								<p className="text-center text-vox-secondary/70 mb-6 max-w-md font-sans">
+									Join a community savings plan to start pooling resources with others,
+									or create your own plan and invite friends and family.
+								</p>
+								</CardContent>
+								<CardFooter className="flex flex-col sm:flex-row gap-3">
+								<Link to="/plans" className="w-full sm:w-auto">
+									<Button className="w-full font-sans border-vox-primary text-vox-primary hover:bg-vox-primary/10">
+									Browse Plans
+									</Button>
+								</Link>
+								<Link to="/create-plan" className="w-full sm:w-auto">
+									<Button className="w-full gradient-bg text-white font-sans hover:opacity-90 transition-opacity">
+									Create a Plan
+									</Button>
+								</Link>
+								</CardFooter>
+							</Card>
+							)}
+						</motion.div>
+					</TabsContent>
+
 
                     <TabsContent value="plans">
                       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>

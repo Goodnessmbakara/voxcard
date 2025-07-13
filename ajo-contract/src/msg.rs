@@ -47,6 +47,8 @@ pub enum QueryMsg {
 	GetPlansByCreator {
 		creator: String
 	},
+	#[returns(u64)]
+	GetPlanCount {},
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

@@ -293,6 +293,10 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
 			let res = query_plans_by_creator(deps, creator)?;
 			to_json_binary(&res)
 		}
+		QueryMsg::GetPlanCount {} => { 
+			let count = PLAN_COUNT.load(deps.storage)?;
+			to_json_binary(&count)
+		}
     }
 }
 
