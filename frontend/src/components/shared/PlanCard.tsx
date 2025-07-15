@@ -26,7 +26,12 @@ export const PlanCard = ({ plan }: { plan: Plan }) => {
         <div className="flex justify-between items-start">
           <div>
             <CardTitle className="text-lg md:text-xl">{plan.name}</CardTitle>
-            <CardDescription className="text-sm mt-1">{plan.description}</CardDescription>
+            <CardDescription className="text-sm mt-1">
+				{plan?.description?.length > 20
+					? `${plan.description.slice(0, 20)}...`
+					: plan.description}
+			</CardDescription>
+
           </div>
           <div className="px-3 py-1 rounded-full text-xs font-medium bg-[#5ba88e] text-white">
             {plan.is_active ? "Active" : "Inactive"}

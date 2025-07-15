@@ -68,7 +68,8 @@ export const ContractProvider = ({ children }: { children: ReactNode }) => {
 	const countRes = await queryClient.queryContractSmart(contractAddress, {
 		GetPlanCount: {},
 	});
-	const totalCount = Number(countRes.count);
+	
+	const totalCount = Number(countRes);
 
 	const start = (page - 1) * pageSize + 1;
 	const end = Math.min(start + pageSize - 1, totalCount);

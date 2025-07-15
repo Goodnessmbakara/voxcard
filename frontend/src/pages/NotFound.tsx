@@ -2,7 +2,7 @@
 import { useLocation, Link } from "react-router-dom";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import Layout from "@/components/layout/Layout";
+import Layout from "@/components/layout/Footer";
 
 const NotFound = () => {
   const location = useLocation();
@@ -15,7 +15,7 @@ const NotFound = () => {
   }, [location.pathname]);
 
   return (
-    <Layout>
+    <>
       <div className="container py-20">
         <div className="max-w-md mx-auto text-center">
           <div className="h-24 w-24 mx-auto mb-6 rounded-full bg-[#5ba88e] flex items-center justify-center">
@@ -41,7 +41,7 @@ const NotFound = () => {
           </div>
         </div>
       </div>
-    </Layout>
+    </>
   );
 };
 

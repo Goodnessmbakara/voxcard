@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import Layout from '@/components/layout/Layout';
+import Layout from '@/components/layout/Footer';
 import PlanCard from '@/components/shared/PlanCard';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -25,14 +25,12 @@ const Plans = () => {
   const [page, setPage] = useState(1);
   const pageSize = 10; // adjust as needed
 
-  const { getPaginatedPlans } = useContract();
+  const { account, getPaginatedPlans } = useContract();
 
   useEffect(() => {
     const fetchPlans = async () => {
       try {
         const { plans: paginatedPlans, totalCount } = await getPaginatedPlans(page, pageSize);
-
-        console.log('Fetched paginated plans:', paginatedPlans, 'Total:', totalCount);
 
         setPlans(paginatedPlans);
         // Optionally store totalCount for pagination UI
@@ -45,7 +43,7 @@ const Plans = () => {
     };
 
     fetchPlans();
-  }, [page]); // re-run if page changes
+  }, [page, account]); // re-run if page changes
 
   const filteredPlans = plans.filter((plan) => {
     const matchesSearch =
@@ -61,7 +59,7 @@ const Plans = () => {
   });
 
   return (
-    <Layout>
+    <>
       <div className="relative container py-8">
         {/* UI remains the same... */}
 
@@ -112,7 +110,7 @@ const Plans = () => {
           )}
         </AnimatePresence>
       </div>
-    </Layout>
+    </>
   );
 };
 

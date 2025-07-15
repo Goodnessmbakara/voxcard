@@ -13,7 +13,7 @@ import { Button } from "@burnt-labs/ui";
 import "@burnt-labs/ui/dist/index.css";
 import { shortenAddress } from "@/services/utils";
 
-export const Navigation = () => {
+export const Header = () => {
   const [showDisconnect, setShowDisconnect] = useState(false);
   const disconnectMenuRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
@@ -191,4 +191,4 @@ export const Navigation = () => {
   );
 };
 
-export default Navigation;
+export default Header;

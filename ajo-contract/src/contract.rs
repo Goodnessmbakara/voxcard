@@ -111,7 +111,7 @@ fn execute_create_plan(
         allow_partial,
         participants,
         current_cycle: 0,
-        is_active: false,
+        is_active: true,
         payout_index: 0,
 		created_by: info.sender.clone(),
     };

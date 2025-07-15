@@ -1,9 +1,9 @@
-import Layout from '@/components/layout/Layout';
+import Layout from '@/components/layout/Footer';
 import { VoxCardLogo } from '@/components/shared/VoxCardLogo';
 
 const About = () => {
   return (
-    <Layout>
+    <>
       <div className="container py-12 max-w-3xl mx-auto">
         <div className="flex flex-col items-center mb-10">
           <VoxCardLogo size="lg" />
@@ -42,7 +42,7 @@ const About = () => {
           <span className="inline-block gradient-text font-heading text-2xl font-bold">Save Safe, Win Sure.</span>
         </div>
       </div>
-    </Layout>
+    </>
   );
 };
 

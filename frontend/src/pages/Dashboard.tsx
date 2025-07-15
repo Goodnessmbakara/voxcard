@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import Layout from '@/components/layout/Layout';
 import { mockPlans, mockPayouts, getUserPlans, defaultUser } from '@/lib/mock-data';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -104,7 +103,6 @@ const Dashboard = () => {
 			if (account) {
 			const response = await getPlansByCreator(account);
 
-			// FIX: flatten out the `plan` key
 			const normalizedPlans = response.map((item: any) => item.plan);
 
 			setUserPlans(normalizedPlans);
@@ -120,7 +118,7 @@ const Dashboard = () => {
   );
 
   return (
-    <Layout>
+    <>
       <ManageWalletModal open={showWalletModal} onClose={() => setShowWalletModal(false)} address={address}/>
       <div className="container py-8">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
@@ -352,7 +350,7 @@ const Dashboard = () => {
           )}
         </AnimatePresence>
       </div>
-    </Layout>
+    </>
   );
 };
 

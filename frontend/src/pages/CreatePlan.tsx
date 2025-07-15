@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Layout from "@/components/layout/Layout";
+import Layout from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -97,7 +97,7 @@ const CreatePlan = () => {
   };
 
   return (
-    <Layout>
+    <>
       <div className="container py-8 max-w-3xl mx-auto">
         <h1 className="text-3xl font-heading font-bold mb-6 text-vox-secondary">
           Create New Savings Plan
@@ -336,7 +336,7 @@ const CreatePlan = () => {
           </CardContent>
         </Card>
       </div>
-    </Layout>
+    </>
   );
 };
 

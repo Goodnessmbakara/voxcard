@@ -2,11 +2,11 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
-import Layout from '@/components/layout/Layout';
+import Layout from '@/components/layout/Footer';
 
 const Home = () => {
   return (
-    <Layout>
+    <>
       {/* Hero Section */}
       <section className="py-20 md:py-32 bg-gradient-to-b from-vox-primary/5 to-white">
         <div className="container">
@@ -228,7 +228,7 @@ const Home = () => {
           </div>
         </div>
       </section>
-    </Layout>
+    </>
   );
 };
 

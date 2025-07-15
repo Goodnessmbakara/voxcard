@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import Layout from "@/components/layout/Layout";
+import Layout from "@/components/layout/Footer";
 import TrustScoreBadge from "@/components/shared/TrustScoreBadge";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -46,7 +46,7 @@ const PlanDetail = () => {
       }
     };
     fetchPlan();
-  }, [planId]);
+  }, [planId, address]);
 
   const handleJoinPlan = () => {
     toast({
@@ -63,21 +63,22 @@ const PlanDetail = () => {
 
   if (!plan) {
     return (
-      <Layout>
-        <div className="container py-16 text-center">
-          <h1 className="text-3xl font-heading font-bold mb-4 text-vox-secondary">
-            Loading Plan...
-          </h1>
-          <p className="mb-8 text-vox-secondary/70 font-sans">
-            Please wait while we fetch plan details.
-          </p>
-          <Link to="/plans">
-            <Button className="gradient-bg text-white font-sans hover:opacity-90 transition-opacity">
-              Back to Plans
-            </Button>
-          </Link>
-        </div>
-      </Layout>
+		<>
+			<div className="container py-16 text-center">
+			<h1 className="text-3xl font-heading font-bold mb-4 text-vox-secondary">
+				Loading Plan...
+			</h1>
+			<p className="mb-8 text-vox-secondary/70 font-sans">
+				Please wait while we fetch plan details.
+			</p>
+			<Link to="/plans">
+				<Button className="gradient-bg text-white font-sans hover:opacity-90 transition-opacity">
+				Back to Plans
+				</Button>
+			</Link>
+			</div>
+		</>
+        
     );
   }
 
@@ -86,7 +87,7 @@ const PlanDetail = () => {
     : 0;
 
   return (
-    <Layout>
+    <>
       <div className="container py-8">
         {/* Header */}
         <div className="mb-8">
@@ -101,7 +102,7 @@ const PlanDetail = () => {
               <p className="text-vox-secondary/70 mt-2 font-sans">{plan.description}</p>
             </div>
 
-            {isParticipantOrAdmin && (
+            {!isParticipantOrAdmin && (
               <Button
                 className="mt-4 md:mt-0 gradient-bg text-white"
                 onClick={handleJoinPlan}
@@ -109,6 +110,18 @@ const PlanDetail = () => {
                 Request to Join
               </Button>
             )}
+			
+			{plan?.created_by?.toLowerCase() === address && (
+				<Button
+					className="mt-4 md:mt-0 gradient-bg text-white"
+					onClick={() => {
+					// Call your activate/deactivate function here
+					console.log("Toggle plan active state");
+					}}
+				>
+					{plan?.is_active ? "Deactivate" : "Activate"}
+				</Button>
+			)}
 
             {isParticipantOrAdmin && (
               <div className="mt-4 md:mt-0 flex items-center gap-2 bg-green-100 text-green-800 px-3 py-2 rounded-md">
@@ -226,7 +239,7 @@ const PlanDetail = () => {
       {/* Modals */}
       <JoinPlanModal planName={plan.name} planId={plan.id} open={joinModalOpen} onClose={() => setJoinModalOpen(false)} />
       <ContributeModal plan={plan} roundNumber={selectedRound} open={contributeModalOpen} onClose={() => setContributeModalOpen(false)} />
-    </Layout>
+    </>
   );
 };
 

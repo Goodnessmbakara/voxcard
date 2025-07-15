@@ -13,7 +13,8 @@ import NotFound from "./pages/NotFound";
 import About from './pages/About';
 import { AbstraxionProvider } from "@burnt-labs/abstraxion";
 import { ContractProvider } from "./context/ContractProvider";
-
+import Header from "./components/layout/Header";
+import Footer from "./components/layout/Footer";
 
 const queryClient = new QueryClient();
 
@@ -33,19 +34,28 @@ const App = () => {
 			<AbstraxionProvider
 				config={Config}
 				>
-				<ContractProvider>
-					<AnimatePresence mode="wait">
-					<Routes>
-						<Route path="/" element={<Home />} />
-						<Route path="/dashboard" element={<Dashboard />} />
-						<Route path="/create-plan" element={<CreatePlan />} />
-						<Route path="/about" element={<About />} />
-						<Route path="*" element={<NotFound />} />
-						<Route path="/plans" element={<Plans />} />
-						<Route path="/plans/:planId" element={<PlanDetail />} />
-					</Routes>
-					</AnimatePresence>
-				</ContractProvider>
+				<div className="min-h-screen bg-gradient-to-b from-white to-gray-50 flex flex-col">
+					<Header />
+
+					<main className="container mx-auto px-4 py-8 flex-1 w-full">
+						<ContractProvider>
+							<AnimatePresence mode="wait">
+							<Routes>
+								<Route path="/" element={<Home />} />
+								<Route path="/dashboard" element={<Dashboard />} />
+								<Route path="/create-plan" element={<CreatePlan />} />
+								<Route path="/about" element={<About />} />
+								<Route path="*" element={<NotFound />} />
+								<Route path="/plans" element={<Plans />} />
+								<Route path="/plans/:planId" element={<PlanDetail />} />
+							</Routes>
+							</AnimatePresence>
+						</ContractProvider>
+					</main>
+					
+
+					<Footer />
+				</div>
 			</AbstraxionProvider>
         </BrowserRouter>
       </TooltipProvider>
