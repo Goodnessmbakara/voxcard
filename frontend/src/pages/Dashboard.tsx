@@ -41,9 +41,9 @@ const ManageWalletModal = ({ open, onClose, address }: { open: boolean; onClose:
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Manage Wallet</DialogTitle>
+          <DialogTitle>Manage Account</DialogTitle>
           <DialogDescription>
-            View and manage your connected Xion wallet.
+            View and manage your connected Xion Account.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
@@ -73,7 +73,7 @@ const ManageWalletModal = ({ open, onClose, address }: { open: boolean; onClose:
               className="w-full flex items-center gap-2 border-red-500 text-red-600 hover:bg-red-50"
               onClick={onClose}
             >
-              <LogOut size={16} /> Disconnect Wallet
+              <LogOut size={16} /> Logout Account
             </Button>
           </div>
         </div>
@@ -155,9 +155,9 @@ const Dashboard = () => {
                 <div className="w-24 h-24 rounded-full bg-vox-primary/10 flex items-center justify-center mb-6 mx-auto">
                   <Wallet size={48} className="text-vox-primary" />
                 </div>
-                <h2 className="text-xl font-heading font-bold text-center text-vox-secondary mb-2">Connect Your Wallet</h2>
+                <h2 className="text-xl font-heading font-bold text-center text-vox-secondary mb-2">Sign In to Account</h2>
                 <p className="text-center text-vox-secondary/70 mb-6 font-sans">
-                  Please connect your wallet to view your dashboard and manage your plans.
+                  Please sign in to view your dashboard and manage your plans.
                 </p>
               </motion.div>
             </motion.div>
@@ -180,7 +180,7 @@ const Dashboard = () => {
                     <CardContent className="space-y-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm text-vox-secondary/60 font-sans">Wallet Address</p>
+                          <p className="text-sm text-vox-secondary/60 font-sans">Account Address</p>
                           <p className="font-mono text-sm font-medium text-vox-secondary">
                             {shortenAddress(address)}
                           </p>
@@ -197,7 +197,7 @@ const Dashboard = () => {
                           onClick={() => setShowWalletModal(true)}
                         >
                           <Wallet size={16} className="mr-2" />
-                          Manage Wallet
+                          Manage Account
                         </Button>
                       </div>
                     </CardContent>

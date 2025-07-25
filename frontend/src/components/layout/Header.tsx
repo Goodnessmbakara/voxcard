@@ -93,7 +93,7 @@ export const Header = () => {
                         setShowDisconnect(false);
                       }}
                     >
-                      Disconnect
+                      Log out
                     </button>
                   </div>
                 )}
@@ -105,7 +105,7 @@ export const Header = () => {
                 structure="base"
                 className="gradient-bg text-white"
               >
-                CONNECT
+                Sign In
               </Button>
             )}
           </div>
@@ -166,7 +166,7 @@ export const Header = () => {
                           structure="base"
                           className="border-red-500 text-red-600 hover:bg-red-50 mb-2"
                         >
-                          Disconnect
+                          Log out
                         </Button>
                       </>
                     ) : (
@@ -176,7 +176,7 @@ export const Header = () => {
                         structure="base"
                         className="gradient-bg text-white"
                       >
-                        CONNECT
+                        Sign In
                       </Button>
                     )}
                   </div>
