@@ -135,6 +135,11 @@ const PlanDetail = () => {
 	};
 
 
+	const filteredJoinRequests = joinRequests.filter(
+		(request) =>
+			!request.approvals.includes(address) && !request.denials.includes(address)
+	);
+
   const handleContribute = (roundNumber: number) => {
     setSelectedRound(roundNumber);
     setContributeModalOpen(true);
@@ -321,7 +326,7 @@ const PlanDetail = () => {
 				<CardDescription>Approve or deny new members who want to join this plan.</CardDescription>
 				</CardHeader>
 				<CardContent className="space-y-3">
-				{joinRequests.map((requester, idx) => (
+				{filteredJoinRequests.map((requester, idx) => (
 					<div key={idx} className="flex justify-between p-3 rounded items-center">
 					<span className="font-mono">{requester.requester}</span>
 					<div className="flex gap-2">
