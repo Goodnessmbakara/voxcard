@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import Layout from "@/components/layout/Footer";
 import TrustScoreBadge from "@/components/shared/TrustScoreBadge";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -15,8 +14,7 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { Calendar, Check, Clock, Users } from "lucide-react";
-import JoinPlanModal from "@/components/modals/JoinPlanModal";
+import { Check, Users } from "lucide-react";
 import ContributeModal from "@/components/modals/ContributeModal";
 import { useAbstraxionAccount } from "@burnt-labs/abstraxion";
 import { shortenAddress } from "@/services/utils";
@@ -126,6 +124,7 @@ const PlanDetail = () => {
 			prev.filter((r) => r.requester !== requester)
 			);
 		} catch (err) {
+			console.error(err.message)
 			toast({
 			title: "Error",
 			description: (err as Error).message,
@@ -343,7 +342,7 @@ const PlanDetail = () => {
 							variant="outline"
 							className="border-red-500 text-red-600 hover:bg-red-50"
 							onClick={() =>
-								handleAcceptOrDenyRequest(Number(planId), requester.requester, true)
+								handleAcceptOrDenyRequest(Number(planId), requester.requester, false)
 							}
 						>
 							Deny

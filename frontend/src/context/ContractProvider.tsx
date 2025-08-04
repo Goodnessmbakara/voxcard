@@ -122,8 +122,8 @@ export const ContractProvider = ({ children }: { children: ReactNode }) => {
 			contractAddress,
 			{ ApproveJoinRequest: { plan_id: planId, requester } },
 			{
-			amount: [],
-			gas: "200000",
+			amount: [{ amount: "10000", denom: "uxion" }],
+			gas: "300000",
 			granter: import.meta.env.VITE_TREASURY_ADDRESS,
 			},
 			"",
@@ -139,8 +139,8 @@ export const ContractProvider = ({ children }: { children: ReactNode }) => {
 			contractAddress,
 			{ DenyJoinRequest: { plan_id: planId, requester } },
 			{
-			amount: [],
-			gas: "200000",
+			amount: [{ amount: "10000", denom: "uxion" }],
+			gas: "300000",
 			granter: import.meta.env.VITE_TREASURY_ADDRESS,
 			},
 			"",
