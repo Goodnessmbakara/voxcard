@@ -40,7 +40,7 @@ export const JoinPlanModal = ({ planName, planId, open, onClose }: JoinPlanModal
       return;
     }
 
-    if (!isConnected) {
+    if (!false) {
       toast({
         title: "Wallet not connected",
         description: "Please connect your wallet first",

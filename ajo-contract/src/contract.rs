@@ -6,8 +6,12 @@ use cosmwasm_std::{
 };
 
 use crate::error::ContractError;
-use crate::msg::{ExecuteMsg, InstantiateMsg, ParticipantStatus, PlanResponse, QueryMsg};
-use crate::state::{Config, Frequency, Plan, CONFIG, PLAN_COUNT, PLANS, PLANS_BY_CREATOR, CONTRIBUTIONS};
+use crate::msg::{ExecuteMsg, InstantiateMsg, ParticipantStatus, PlanResponse, QueryMsg, JoinRequestsResponse};
+use crate::state::{Config, 
+	Frequency, Plan, 
+	CONFIG, PLAN_COUNT, 
+	PLANS, PLANS_BY_CREATOR, 
+	CONTRIBUTIONS, JOIN_REQUESTS, JoinRequest};
 use cw2::set_contract_version;
 
 const CONTRACT_NAME: &str = "crates.io:ajo-contract";
@@ -65,6 +69,14 @@ pub fn execute(
         ExecuteMsg::DistributePayout { plan_id } => {
             execute_distribute_payout(deps, env, info, plan_id)
         }
+		ExecuteMsg::RequestToJoinPlan { plan_id } => request_to_join_plan(deps, info, plan_id),
+        ExecuteMsg::ApproveJoinRequest { plan_id, requester } => {
+            approve_join_request(deps, env, info, plan_id, requester)
+        },
+		ExecuteMsg::DenyJoinRequest { plan_id, requester } => {
+			deny_join_request(deps, env, info, plan_id, requester)
+		}
+
     }
 }
 
@@ -297,6 +309,11 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
 			let count = PLAN_COUNT.load(deps.storage)?;
 			to_json_binary(&count)
 		}
+		QueryMsg::GetJoinRequests { plan_id } => {
+			let res = query_join_requests(deps, plan_id)?;
+			to_json_binary(&res)
+		}
+
     }
 }
 
@@ -338,4 +355,116 @@ fn query_plans_by_creator(
     }
 
     Ok(plans)
+}
+
+pub fn request_to_join_plan(
+    deps: DepsMut,
+    info: MessageInfo,
+    plan_id: u64,
+) -> Result<Response, ContractError> {
+    let requester = info.sender.clone();
+
+    // Check for existing request
+    if JOIN_REQUESTS.has(deps.storage, (plan_id, requester.clone())) {
+        return Err(ContractError::AlreadyRequested {});
+    }
+
+    let new_request = JoinRequest {
+        plan_id,
+        requester: requester.clone(),
+        approvals: vec![],
+		denials: vec![],
+    };
+
+    JOIN_REQUESTS.save(deps.storage, (plan_id, requester.clone()), &new_request)?;
+
+    Ok(Response::new()
+        .add_attribute("action", "request_to_join_plan")
+        .add_attribute("plan_id", plan_id.to_string())
+        .add_attribute("requester", requester))
+}
+
+pub fn approve_join_request(
+    deps: DepsMut,
+    _env: Env,
+    info: MessageInfo,
+    plan_id: u64,
+    requester: String,
+) -> Result<Response, ContractError> {
+    let requester_addr = deps.api.addr_validate(&requester)?;
+    let mut plan = PLANS.load(deps.storage, plan_id)?;
+    let key = (plan_id, requester_addr.clone());
+
+    // First, update approvals inside the closure
+    let updated_request = JOIN_REQUESTS.update::<_, ContractError>(deps.storage, key.clone(), |maybe_request| {
+        let mut request = maybe_request.ok_or(ContractError::NotFound {})?;
+
+        if request.approvals.contains(&info.sender) || request.denials.contains(&info.sender) {
+            return Ok::<JoinRequest, ContractError>(request);
+        }
+
+        request.approvals.push(info.sender.clone());
+        Ok::<JoinRequest, ContractError>(request)
+    })?;
+
+    // Now apply side effects *after* the update to avoid borrow conflict
+    if updated_request.approvals.len() * 2 >= plan.participants.len() {
+        // 50%+ approved: add to participants, save plan, remove request
+        plan.participants.push(requester_addr.to_string());
+        PLANS.save(deps.storage, plan_id, &plan)?;
+        JOIN_REQUESTS.remove(deps.storage, key);
+    }
+
+    Ok(Response::new()
+        .add_attribute("action", "approve_join_request")
+        .add_attribute("plan_id", plan_id.to_string())
+        .add_attribute("requester", requester))
+}
+
+
+fn query_join_requests(deps: Deps, plan_id: u64) -> StdResult<JoinRequestsResponse> {
+    let requests = JOIN_REQUESTS
+        .range(deps.storage, None, None, cosmwasm_std::Order::Ascending)
+        .filter_map(|item| {
+            match item {
+                Ok(((stored_plan_id, _addr), join_request)) if stored_plan_id == plan_id => Some(join_request),
+                _ => None,
+            }
+        })
+        .collect();
+
+    Ok(JoinRequestsResponse { requests })
+}
+
+pub fn deny_join_request(
+    deps: DepsMut,
+    _env: Env,
+    info: MessageInfo,
+    plan_id: u64,
+    requester: String,
+) -> Result<Response, ContractError> {
+    let requester_addr = deps.api.addr_validate(&requester)?;
+    let plan = PLANS.load(deps.storage, plan_id)?;
+    let key = (plan_id, requester_addr.clone());
+
+    let updated_request = JOIN_REQUESTS.update::<_, ContractError>(deps.storage, key.clone(), |maybe_request| {
+        let mut request = maybe_request.ok_or(ContractError::NotFound {})?;
+
+        if request.approvals.contains(&info.sender) || request.denials.contains(&info.sender) {
+            return Ok::<JoinRequest, ContractError>(request);
+        }
+
+        request.denials.push(info.sender.clone());
+        Ok::<JoinRequest, ContractError>(request)
+    })?;
+
+    if updated_request.denials.len() * 2 > plan.participants.len() {
+        // More than 50% denied: remove request
+        JOIN_REQUESTS.remove(deps.storage, key);
+    }
+
+    Ok(Response::new()
+        .add_attribute("action", "deny_join_request")
+        .add_attribute("plan_id", plan_id.to_string())
+        .add_attribute("requester", requester))
 }

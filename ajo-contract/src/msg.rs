@@ -1,3 +1,4 @@
+use crate::state::JoinRequest;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use cosmwasm_std::{Uint128};
@@ -30,6 +31,17 @@ pub enum ExecuteMsg {
     DistributePayout {
         plan_id: u64,
     },
+	RequestToJoinPlan { 
+		plan_id: u64 
+	},
+    ApproveJoinRequest { 
+		plan_id: u64, 
+		requester: String 
+	},
+	DenyJoinRequest { 
+		plan_id: u64, 
+		requester: String 
+	},
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema, QueryResponses)]
@@ -49,6 +61,9 @@ pub enum QueryMsg {
 	},
 	#[returns(u64)]
 	GetPlanCount {},
+
+	#[returns(JoinRequestsResponse)]
+	GetJoinRequests { plan_id: u64 },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -60,4 +75,10 @@ pub struct PlanResponse {
 pub struct ParticipantStatus {
     pub contributed: Uint128,
     pub received_payout: bool,
+}
+
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct JoinRequestsResponse {
+    pub requests: Vec<JoinRequest>,
 }

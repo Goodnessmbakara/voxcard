@@ -33,6 +33,16 @@ pub struct Plan {
 	pub created_by: Addr,
 }
 
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct JoinRequest {
+    pub plan_id: u64,
+    pub requester: Addr,
+    pub approvals: Vec<Addr>, // addresses of those who approved
+	pub denials: Vec<Addr>, //addresses of those who disapprove
+}
+
+
+pub const JOIN_REQUESTS: Map<(u64, Addr), JoinRequest> = Map::new("join_requests");
 // Global storage items
 pub const CONFIG: Item<Config> = Item::new("config");
 pub const PLAN_COUNT: Item<u64> = Item::new("plan_count");

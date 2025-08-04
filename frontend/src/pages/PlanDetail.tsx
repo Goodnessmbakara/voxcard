@@ -21,11 +21,20 @@ import ContributeModal from "@/components/modals/ContributeModal";
 import { useAbstraxionAccount } from "@burnt-labs/abstraxion";
 import { shortenAddress } from "@/services/utils";
 
+
 const PlanDetail = () => {
+  const [joining, setJoining] = useState(false);
+  const [joined, setJoined] = useState(false);
+  const [joinRequests, setJoinRequests] = useState([]);
   const { planId } = useParams<{ planId: string }>();
+  const { 
+	requestJoinPlan, 
+	getJoinRequests,
+	approveJoinRequest,
+	denyJoinRequest,
+ } = useContract();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("overview");
-  const [joinModalOpen, setJoinModalOpen] = useState(false);
   const [contributeModalOpen, setContributeModalOpen] = useState(false);
   const [selectedRound, setSelectedRound] = useState(1);
   const [plan, setPlan] = useState<Plan | null>(null);
@@ -48,13 +57,83 @@ const PlanDetail = () => {
     fetchPlan();
   }, [planId, address]);
 
-  const handleJoinPlan = () => {
-    toast({
-      title: "Wallet not connected",
-      description: "Please connect your wallet first to join this plan",
-      variant: "destructive",
-    });
-  };
+  useEffect(() => {
+	const fetchRequests = async () => {
+		if (planId && isParticipantOrAdmin) {
+		try {
+			const res = await getJoinRequests(Number(planId));
+			setJoinRequests(res?.requests ?? []);
+		} catch (err) {
+			console.error("Failed to fetch join requests:", err);
+		}
+		}
+	};
+	fetchRequests();
+	}, [planId, isParticipantOrAdmin]);
+
+
+  const handleJoinPlan = async () => {
+	if (!planId || !address) {
+		toast({
+		title: "Wallet not connected",
+		description: "Please connect your wallet first to join this plan",
+		variant: "destructive",
+		});
+		return;
+	}
+
+	try {
+		setJoining(true);
+		await requestJoinPlan(Number(planId));
+		setJoined(true);
+	} catch (error) {
+		console.error(error.message)
+		toast({
+		title: "Join request failed",
+		description: (error as Error).message || "Something went wrong",
+		variant: "destructive",
+		});
+	} finally {
+		setTimeout(() => {
+		setJoining(false);
+		setJoined(false);
+		}, 2000);
+	}
+	};
+
+	const handleAcceptOrDenyRequest = async (
+		planId: number,
+		requester: string,
+		isApprove: boolean
+		) => {
+		try {
+			if (isApprove) {
+			await approveJoinRequest(planId, requester);
+			toast({
+				title: "Approved",
+				description: `${requester} has been approved.`,
+			});
+			} else {
+			await denyJoinRequest(planId, requester);
+			toast({
+				title: "Denied",
+				description: `${requester} has been denied.`,
+			});
+			}
+
+			// Remove from list after action
+			setJoinRequests((prev) =>
+			prev.filter((r) => r.requester !== requester)
+			);
+		} catch (err) {
+			toast({
+			title: "Error",
+			description: (err as Error).message,
+			variant: "destructive",
+			});
+		}
+	};
+
 
   const handleContribute = (roundNumber: number) => {
     setSelectedRound(roundNumber);
@@ -180,6 +259,7 @@ const PlanDetail = () => {
             </Card>
           </div>
 
+		  
           {/* Main Tabs */}
           <div className="lg:col-span-2">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -233,11 +313,64 @@ const PlanDetail = () => {
               </TabsContent>
             </Tabs>
           </div>
+
+		  {isParticipantOrAdmin && joinRequests.length > 0 && (
+			<Card className="lg:col-span-3 mt-6">
+				<CardHeader>
+				<CardTitle>Pending Join Requests</CardTitle>
+				<CardDescription>Approve or deny new members who want to join this plan.</CardDescription>
+				</CardHeader>
+				<CardContent className="space-y-3">
+				{joinRequests.map((requester, idx) => (
+					<div key={idx} className="flex justify-between p-3 rounded items-center">
+					<span className="font-mono">{requester.requester}</span>
+					<div className="flex gap-2">
+						<Button
+							variant="outline"
+							className="border-green-500 text-green-600 hover:bg-green-50"
+							onClick={() =>
+								handleAcceptOrDenyRequest(Number(planId), requester.requester, true)
+							}
+						>
+							Approve
+						</Button>
+						<Button
+							variant="outline"
+							className="border-red-500 text-red-600 hover:bg-red-50"
+							onClick={() =>
+								handleAcceptOrDenyRequest(Number(planId), requester.requester, true)
+							}
+						>
+							Deny
+						</Button>
+						</div>
+					</div>
+				))}
+				</CardContent>
+			</Card>
+		  )}
         </div>
       </div>
 
       {/* Modals */}
-      <JoinPlanModal planName={plan.name} planId={plan.id} open={joinModalOpen} onClose={() => setJoinModalOpen(false)} />
+      {joining && (
+		<div className="fixed inset-0 flex flex-col items-center justify-center z-50 bg-white/90">
+			{!joined ? (
+			<>
+				<div className="w-12 h-12 border-4 border-vox-primary border-t-transparent rounded-full animate-spin" />
+				<p className="mt-4 text-vox-secondary font-semibold">Sending join request...</p>
+			</>
+			) : (
+			<>
+				<div className="text-green-600">
+				<Check size={48} strokeWidth={3} />
+				</div>
+				<p className="mt-4 text-green-700 font-semibold">Request sent!</p>
+			</>
+			)}
+		</div>
+		)}
+
       <ContributeModal plan={plan} roundNumber={selectedRound} open={contributeModalOpen} onClose={() => setContributeModalOpen(false)} />
     </>
   );

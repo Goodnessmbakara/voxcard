@@ -17,6 +17,10 @@ interface ContractContextProps {
   getPlansByCreator: (creator: string) => Promise<{ plans: Plan[] }>;
   getPlanById: (planId: number) => Promise<{ plan: Plan | null }>;
   getPaginatedPlans: (page: number, pageSize: number) => Promise<{ plans: Plan[]; totalCount: number }>;
+  requestJoinPlan: (planId: number) => Promise<ExecuteResult>;
+  approveJoinRequest: (planId: number, requester: string) => Promise<ExecuteResult>;
+  denyJoinRequest: (planId: number, requester: string) => Promise<ExecuteResult>;
+  getJoinRequests: (planId: number) => Promise<{ requests: string[] }>;
 }
 
 
@@ -87,6 +91,62 @@ export const ContractProvider = ({ children }: { children: ReactNode }) => {
 	return { plans, totalCount }; 
 	};
 
+	const requestJoinPlan = async (planId: number): Promise<ExecuteResult> => {
+		if (!signingClient || !sender) throw new Error("Wallet not connected");
+
+		return await signingClient.execute(
+			sender,
+			contractAddress,
+			{ RequestToJoinPlan: { plan_id: planId } },
+			{
+			amount: [{ amount: "10000", denom: "uxion" }],
+			gas: "200000",
+			granter: import.meta.env.VITE_TREASURY_ADDRESS,
+			},
+			"",
+			[]
+		);
+	};
+
+	const getJoinRequests = async (planId: number): Promise<{ requests: string[] }> => {
+		return await queryClient.queryContractSmart(contractAddress, {
+			GetJoinRequests: { plan_id: planId },
+		});
+	};
+
+	const approveJoinRequest = async (planId: number, requester: string): Promise<ExecuteResult> => {
+		if (!signingClient || !sender) throw new Error("Wallet not connected");
+
+		return await signingClient.execute(
+			sender,
+			contractAddress,
+			{ ApproveJoinRequest: { plan_id: planId, requester } },
+			{
+			amount: [],
+			gas: "200000",
+			granter: import.meta.env.VITE_TREASURY_ADDRESS,
+			},
+			"",
+			[]
+		);
+	};
+
+	const denyJoinRequest = async (planId: number, requester: string): Promise<ExecuteResult> => {
+		if (!signingClient || !sender) throw new Error("Wallet not connected");
+
+		return await signingClient.execute(
+			sender,
+			contractAddress,
+			{ DenyJoinRequest: { plan_id: planId, requester } },
+			{
+			amount: [],
+			gas: "200000",
+			granter: import.meta.env.VITE_TREASURY_ADDRESS,
+			},
+			"",
+			[]
+		);
+	};
 
   return (
     <ContractContext.Provider value={{
@@ -95,7 +155,11 @@ export const ContractProvider = ({ children }: { children: ReactNode }) => {
 		createPlan,
 		getPlansByCreator,
 		getPlanById,
-		getPaginatedPlans
+		getPaginatedPlans,
+		requestJoinPlan,
+		getJoinRequests,
+		approveJoinRequest,
+		denyJoinRequest,
 	}}>
       {children}
     </ContractContext.Provider>

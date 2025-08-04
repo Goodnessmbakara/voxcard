@@ -35,4 +35,16 @@ pub enum ContractError {
 
     #[error("Not enough total contributions to distribute payout")]
     InsufficientContributions {},
+
+	#[error("Join request already exists")]
+    AlreadyRequested {},
+
+    #[error("Join request not found")]
+    JoinRequestNotFound {},
+
+    #[error("Already approved")]
+    AlreadyApproved {},
+
+	#[error("Item not found")]
+    NotFound,
 }
