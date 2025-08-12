@@ -25,3 +25,10 @@ export interface Plan {
 	is_active: boolean;
 	payout_index: number;
 }
+
+export type ParticipantCycleStatus = {
+  required: string;
+  contributed_this_cycle: string;
+  remaining_this_cycle: string;
+  fully_contributed: boolean;
+};

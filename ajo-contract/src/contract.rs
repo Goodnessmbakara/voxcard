@@ -1,17 +1,17 @@
 // src/contract.rs
 
 use cosmwasm_std::{
-    entry_point, to_json_binary, BankMsg, Binary, Coin, Deps, DepsMut, Env,
+    entry_point, to_json_binary, Binary, Deps, DepsMut, Env,
     MessageInfo, Response, StdResult, StdError, Uint128,
 };
 
 use crate::error::ContractError;
-use crate::msg::{ExecuteMsg, InstantiateMsg, ParticipantStatus, PlanResponse, QueryMsg, JoinRequestsResponse};
+use crate::msg::{ExecuteMsg, InstantiateMsg, PlanResponse, QueryMsg, JoinRequestsResponse, ParticipantCycleStatusResponse};
 use crate::state::{Config, 
 	Frequency, Plan, 
 	CONFIG, PLAN_COUNT, 
 	PLANS, PLANS_BY_CREATOR, 
-	CONTRIBUTIONS, JOIN_REQUESTS, JoinRequest};
+	CONTRIBUTIONS_BY_CYCLE, JOIN_REQUESTS, JoinRequest};
 use cw2::set_contract_version;
 
 const CONTRACT_NAME: &str = "crates.io:ajo-contract";
@@ -63,20 +63,16 @@ pub fn execute(
             allow_partial,
         ),
         ExecuteMsg::JoinPlan { plan_id } => execute_join_plan(deps, info, plan_id),
-        ExecuteMsg::Contribute { plan_id, amount } => {
-            execute_contribute(deps, env, info, plan_id, amount)
-        }
-        ExecuteMsg::DistributePayout { plan_id } => {
-            execute_distribute_payout(deps, env, info, plan_id)
-        }
 		ExecuteMsg::RequestToJoinPlan { plan_id } => request_to_join_plan(deps, info, plan_id),
         ExecuteMsg::ApproveJoinRequest { plan_id, requester } => {
             approve_join_request(deps, env, info, plan_id, requester)
         },
 		ExecuteMsg::DenyJoinRequest { plan_id, requester } => {
 			deny_join_request(deps, env, info, plan_id, requester)
-		}
-
+		},
+		ExecuteMsg::Contribute { plan_id, amount } => {
+            execute_contribute(deps, env, info, plan_id, amount)
+        }
     }
 }
 
@@ -191,102 +187,109 @@ fn execute_contribute(
         return Err(ContractError::NotParticipant {});
     }
 
-    if !plan.allow_partial && amount != plan.contribution_amount {
-        return Err(ContractError::InvalidInput("Must contribute exact amount".to_string()));
-    }
-    if amount > plan.contribution_amount {
-        return Err(ContractError::InvalidInput("Contribution exceeds required amount".to_string()));
-    }
-
-    let sent_funds = info
-        .funds
-        .iter()
-        .find(|c| c.denom == "uxion")
-        .map(|c| c.amount)
-        .unwrap_or(Uint128::zero());
-
-    if sent_funds < amount {
+    // validate funds
+    let sent = info.funds.iter().find(|c| c.denom == "uxion").map(|c| c.amount).unwrap_or_default();
+    if sent < amount {
         return Err(ContractError::InvalidInput("Insufficient funds sent".to_string()));
     }
 
-    let key = (plan_id, &sender);
-    let current = CONTRIBUTIONS.may_load(deps.storage, key)?.unwrap_or(Uint128::zero());
-    CONTRIBUTIONS.save(deps.storage, key, &(current + amount))?;
+    let cycle = plan.current_cycle; // u32
+    let key = (plan_id, cycle, sender.clone());
+    let already = CONTRIBUTIONS_BY_CYCLE.may_load(deps.storage, key.clone())?.unwrap_or_default();
+
+    // how much room left this cycle
+    let required = plan.contribution_amount;
+    if already >= required {
+        return Err(ContractError::InvalidInput("Already fully contributed this cycle".to_string()));
+    }
+
+    if !plan.allow_partial && amount != required {
+        return Err(ContractError::InvalidInput("Must contribute exact amount".to_string()));
+    }
+
+    // For partials, cap the top-up so they never exceed the per-cycle target
+    let remaining = required.checked_sub(already).unwrap_or_default();
+    if amount > remaining {
+        return Err(ContractError::InvalidInput("Contribution exceeds remaining for this cycle".to_string()));
+    }
+
+    // Save per-cycle
+    CONTRIBUTIONS_BY_CYCLE.save(deps.storage, key, &(already + amount))?;
+
+    // Optional: keep lifetime total too
+    // let lifetime_key = (plan_id, sender.clone());
+    // let life = CONTRIBUTIONS.may_load(deps.storage, lifetime_key)?.unwrap_or_default();
+    // CONTRIBUTIONS.save(deps.storage, lifetime_key, &(life + amount))?;
 
     Ok(Response::new()
-        .add_attribute("method", "contribute")
+        .add_attribute("action", "contribute")
         .add_attribute("plan_id", plan_id.to_string())
+        .add_attribute("cycle", cycle.to_string())
         .add_attribute("amount", amount.to_string()))
 }
 
-fn execute_distribute_payout(
-    deps: DepsMut,
-    _env: Env,
-    info: MessageInfo,
-    plan_id: u64,
-) -> Result<Response, ContractError> {
-    let config = CONFIG.load(deps.storage)?;
-    let mut plan = PLANS.load(deps.storage, plan_id)?;
 
-    if info.sender != config.admin {
-        return Err(ContractError::Unauthorized("Only admin can distribute payouts".to_string()));
-    }
-    if !plan.is_active {
-        return Err(ContractError::PlanNotActive {});
-    }
+// fn execute_distribute_payout(
+//     deps: DepsMut,
+//     _env: Env,
+//     info: MessageInfo,
+//     plan_id: u64,
+// ) -> Result<Response, ContractError> {
+//     let config = CONFIG.load(deps.storage)?;
+//     let mut plan = PLANS.load(deps.storage, plan_id)?;
 
-    let total_required = plan.contribution_amount * Uint128::from(plan.participants.len() as u128);
-    let mut total_actual = Uint128::zero();
+//     if info.sender != config.admin {
+//         return Err(ContractError::Unauthorized("Only admin can distribute payouts".to_string()));
+//     }
+//     if !plan.is_active {
+//         return Err(ContractError::PlanNotActive {});
+//     }
 
-    for p in &plan.participants {
-        let addr = deps.api.addr_validate(p)?;
-        total_actual += CONTRIBUTIONS.may_load(deps.storage, (plan_id, &addr))?.unwrap_or(Uint128::zero());
-    }
+//     let total_required = plan.contribution_amount * Uint128::from(plan.participants.len() as u128);
+//     let mut total_actual = Uint128::zero();
 
-    if total_actual < total_required {
-        return Err(ContractError::InsufficientContributions {});
-    }
+//     for p in &plan.participants {
+//         let addr = deps.api.addr_validate(p)?;
+//         total_actual += CONTRIBUTIONS.may_load(deps.storage, (plan_id, &addr))?.unwrap_or(Uint128::zero());
+//     }
 
-    let recipient_str = &plan.participants[plan.payout_index as usize];
-    let recipient = deps.api.addr_validate(recipient_str)?;
-    let payout = total_required;
+//     if total_actual < total_required {
+//         return Err(ContractError::InsufficientContributions {});
+//     }
 
-    for p in &plan.participants {
-        let addr = deps.api.addr_validate(p)?;
-        CONTRIBUTIONS.save(deps.storage, (plan_id, &addr), &Uint128::zero())?;
-    }
+//     let recipient_str = &plan.participants[plan.payout_index as usize];
+//     let recipient = deps.api.addr_validate(recipient_str)?;
+//     let payout = total_required;
 
-    plan.payout_index = (plan.payout_index + 1) % plan.participants.len() as u32;
-    plan.current_cycle += 1;
-    if plan.current_cycle >= plan.duration_months * plan_frequency_to_cycles(&plan.frequency) {
-        plan.is_active = false;
-    }
+//     for p in &plan.participants {
+//         let addr = deps.api.addr_validate(p)?;
+//         CONTRIBUTIONS.save(deps.storage, (plan_id, &addr), &Uint128::zero())?;
+//     }
 
-    PLANS.save(deps.storage, plan_id, &plan)?;
+//     plan.payout_index = (plan.payout_index + 1) % plan.participants.len() as u32;
+//     plan.current_cycle += 1;
+//     if plan.current_cycle >= plan.duration_months * plan_frequency_to_cycles(&plan.frequency) {
+//         plan.is_active = false;
+//     }
 
-    let bank_msg = BankMsg::Send {
-        to_address: recipient.to_string(),
-        amount: vec![Coin {
-            denom: "uxion".to_string(),
-            amount: payout,
-        }],
-    };
+//     PLANS.save(deps.storage, plan_id, &plan)?;
 
-    Ok(Response::new()
-        .add_message(bank_msg)
-        .add_attribute("method", "distribute_payout")
-        .add_attribute("plan_id", plan_id.to_string())
-        .add_attribute("recipient", recipient.to_string())
-        .add_attribute("amount", payout.to_string()))
-}
+//     let bank_msg = BankMsg::Send {
+//         to_address: recipient.to_string(),
+//         amount: vec![Coin {
+//             denom: "uxion".to_string(),
+//             amount: payout,
+//         }],
+//     };
 
-fn plan_frequency_to_cycles(freq: &Frequency) -> u32 {
-    match freq {
-        Frequency::Daily => 30,
-        Frequency::Weekly => 4,
-        Frequency::Monthly => 1,
-    }
-}
+//     Ok(Response::new()
+//         .add_message(bank_msg)
+//         .add_attribute("method", "distribute_payout")
+//         .add_attribute("plan_id", plan_id.to_string())
+//         .add_attribute("recipient", recipient.to_string())
+//         .add_attribute("amount", payout.to_string()))
+// }
+
 
 #[entry_point]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
@@ -295,11 +298,6 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
             let plan = query_plan(deps, plan_id)
                 .map_err(|e| StdError::generic_err(e.to_string()))?;
             to_json_binary(&plan)
-        }
-        QueryMsg::GetParticipantStatus { plan_id, participant } => {
-            let status = query_participant_status(deps, plan_id, participant)
-                .map_err(|e| StdError::generic_err(e.to_string()))?;
-            to_json_binary(&status)
         }
 		QueryMsg::GetPlansByCreator { creator } => {
 			let res = query_plans_by_creator(deps, creator)?;
@@ -313,31 +311,15 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
 			let res = query_join_requests(deps, plan_id)?;
 			to_json_binary(&res)
 		}
-
+		QueryMsg::GetParticipantCycleStatus { plan_id, participant } => {
+            to_json_binary(&query_participant_cycle_status(deps, plan_id, participant)?)
+        }
     }
 }
 
 fn query_plan(deps: Deps, plan_id: u64) -> Result<PlanResponse, ContractError> {
     let plan = PLANS.may_load(deps.storage, plan_id)?;
     Ok(PlanResponse { plan })
-}
-
-fn query_participant_status(
-    deps: Deps,
-    plan_id: u64,
-    participant: String,
-) -> Result<ParticipantStatus, ContractError> {
-    let plan = PLANS.load(deps.storage, plan_id)?;
-    let addr = deps.api.addr_validate(&participant)?;
-    let contributed = CONTRIBUTIONS
-        .may_load(deps.storage, (plan_id, &addr))?
-        .unwrap_or(Uint128::zero());
-    let received = plan.payout_index > 0
-        && plan.participants[..plan.payout_index as usize].contains(&participant);
-    Ok(ParticipantStatus {
-        contributed,
-        received_payout: received,
-    })
 }
 
 fn query_plans_by_creator(
@@ -467,4 +449,30 @@ pub fn deny_join_request(
         .add_attribute("action", "deny_join_request")
         .add_attribute("plan_id", plan_id.to_string())
         .add_attribute("requester", requester))
+}
+
+
+fn query_participant_cycle_status(
+    deps: Deps,
+    plan_id: u64,
+    participant: String,
+) -> StdResult<ParticipantCycleStatusResponse> {
+    let plan = PLANS.load(deps.storage, plan_id)?;
+    let addr = deps.api.addr_validate(&participant)?;
+    let cycle = plan.current_cycle;
+
+    let contributed = CONTRIBUTIONS_BY_CYCLE
+        .may_load(deps.storage, (plan_id, cycle, addr))?
+        .unwrap_or_default();
+
+    let required = plan.contribution_amount;
+    let remaining = required.saturating_sub(contributed);
+    let fully = contributed >= required;
+
+    Ok(ParticipantCycleStatusResponse {
+        required,
+        contributed_this_cycle: contributed,
+        remaining_this_cycle: remaining,
+        fully_contributed: fully,
+    })
 }

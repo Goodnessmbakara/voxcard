@@ -18,6 +18,7 @@ import { Check, Users } from "lucide-react";
 import ContributeModal from "@/components/modals/ContributeModal";
 import { useAbstraxionAccount } from "@burnt-labs/abstraxion";
 import { shortenAddress } from "@/services/utils";
+import type { ParticipantCycleStatus } from "@/types/utils";
 
 
 const PlanDetail = () => {
@@ -30,12 +31,13 @@ const PlanDetail = () => {
 	getJoinRequests,
 	approveJoinRequest,
 	denyJoinRequest,
+	getParticipantCycleStatus
  } = useContract();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("overview");
   const [contributeModalOpen, setContributeModalOpen] = useState(false);
-  const [selectedRound, setSelectedRound] = useState(1);
   const [plan, setPlan] = useState<Plan | null>(null);
+  const [refreshNonce, setRefreshNonce] = useState(0);
 
   const { data: account } = useAbstraxionAccount();
   const { getPlanById } = useContract();
@@ -45,6 +47,12 @@ const PlanDetail = () => {
     participants.map((addr) => addr.toLowerCase()).includes(address) ||
     plan?.created_by?.toLowerCase() === address;
 
+	const [cycleStatus, setCycleStatus] = useState<ParticipantCycleStatus | null>(null);
+
+	const contributeDisabled =
+		!isParticipantOrAdmin ||
+		(cycleStatus?.fully_contributed ?? false);
+
   useEffect(() => {
     const fetchPlan = async () => {
       if (planId) {
@@ -53,7 +61,7 @@ const PlanDetail = () => {
       }
     };
     fetchPlan();
-  }, [planId, address]);
+  }, [planId, address, refreshNonce]);
 
   useEffect(() => {
 	const fetchRequests = async () => {
@@ -67,9 +75,24 @@ const PlanDetail = () => {
 		}
 	};
 	fetchRequests();
-	}, [planId, isParticipantOrAdmin]);
+	}, [planId, isParticipantOrAdmin, refreshNonce]);
 
+	useEffect(() => {
+		const fetchStatus = async () => {
+			if (!planId || !address) return;
+			try {
+			const res = await getParticipantCycleStatus(Number(planId), address);
+			setCycleStatus(res);
+			} catch (e) {
+			console.error("GetParticipantCycleStatus failed:", e);
+			setCycleStatus(null);
+			}
+		};
+		fetchStatus();
+	}, [planId, address, refreshNonce]);
 
+	const refetchAll = () => setRefreshNonce(n => n + 1);
+	
   const handleJoinPlan = async () => {
 	if (!planId || !address) {
 		toast({
@@ -123,6 +146,7 @@ const PlanDetail = () => {
 			setJoinRequests((prev) =>
 			prev.filter((r) => r.requester !== requester)
 			);
+			refetchAll()
 		} catch (err) {
 			console.error(err.message)
 			toast({
@@ -139,8 +163,7 @@ const PlanDetail = () => {
 			!request.approvals.includes(address) && !request.denials.includes(address)
 	);
 
-  const handleContribute = (roundNumber: number) => {
-    setSelectedRound(roundNumber);
+  const handleContribute = async () => {
     setContributeModalOpen(true);
   };
 
@@ -171,11 +194,11 @@ const PlanDetail = () => {
 
   return (
     <>
-      <div className="container py-8">
+      <div className="container min-h-screen py-8">
         {/* Header */}
         <div className="mb-8">
           <div className="flex flex-col md:flex-row justify-between md:items-center">
-            <div>
+            <div className="w-96">
               <div className="flex items-center gap-3">
                 <h1 className="text-3xl font-heading font-bold text-vox-secondary">{plan.name}</h1>
                 <span className="px-3 py-1 rounded-full text-sm font-medium bg-vox-primary/10 text-vox-primary capitalize">
@@ -206,12 +229,26 @@ const PlanDetail = () => {
 				</Button>
 			)}
 
-            {isParticipantOrAdmin && (
-              <div className="mt-4 md:mt-0 flex items-center gap-2 bg-green-100 text-green-800 px-3 py-2 rounded-md">
-                <Check size={16} />
-                <span>You're a participant</span>
-              </div>
-            )}
+			<div className="flex gap-2">
+				{isParticipantOrAdmin && (
+				<div className="mt-4 md:mt-0 flex items-center gap-2 bg-green-100 text-green-800 px-3 py-2 rounded-md">
+					<Check size={16} />
+					<span>You're a participant</span>
+				</div>
+				)}
+
+				{isParticipantOrAdmin && (
+					<Button
+						className="mt-4 md:mt-0 gradient-bg text-white"
+						onClick={handleContribute}
+						disabled={contributeDisabled}
+						title={cycleStatus?.fully_contributed ? "You already contributed this cycle" : undefined}
+					>
+						{cycleStatus?.fully_contributed ? "Contributed" : "Contribute"}
+					</Button>
+				)}
+			</div>
+            
           </div>
         </div>
 
@@ -261,6 +298,26 @@ const PlanDetail = () => {
                 </div>
               </CardContent>
             </Card>
+
+			{isParticipantOrAdmin && (
+				<Card>
+					<CardHeader>
+						<CardTitle>Your Contribution</CardTitle>
+					</CardHeader>
+					<CardContent className="space-y-4">
+						{cycleStatus.fully_contributed ? (
+							<p>You have completed payment for this cycle.</p>
+						) : (
+							<>
+								<p>Xion contributed to Cycle: <b>{cycleStatus.contributed_this_cycle} Xion</b></p>
+								<p>Xion unpaid to Cycle: <b>{cycleStatus.remaining_this_cycle} Xion</b></p>
+							</>
+						)}
+					</CardContent>
+				</Card>
+
+			)}
+
           </div>
 
 		  
@@ -316,9 +373,8 @@ const PlanDetail = () => {
                 </Card>
               </TabsContent>
             </Tabs>
-          </div>
-
-		  {isParticipantOrAdmin && joinRequests.length > 0 && (
+			
+			{isParticipantOrAdmin && joinRequests.length > 0 && (
 			<Card className="lg:col-span-3 mt-6">
 				<CardHeader>
 				<CardTitle>Pending Join Requests</CardTitle>
@@ -353,6 +409,9 @@ const PlanDetail = () => {
 				</CardContent>
 			</Card>
 		  )}
+          </div>
+
+		  
         </div>
       </div>
 
@@ -375,7 +434,7 @@ const PlanDetail = () => {
 		</div>
 		)}
 
-      <ContributeModal plan={plan} roundNumber={selectedRound} open={contributeModalOpen} onClose={() => setContributeModalOpen(false)} />
+      <ContributeModal plan={plan} cycleStatus={cycleStatus} open={contributeModalOpen} onClose={() => setContributeModalOpen(false)} onSuccess={() => refetchAll()}/>
     </>
   );
 };

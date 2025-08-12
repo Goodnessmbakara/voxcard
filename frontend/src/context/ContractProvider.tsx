@@ -6,7 +6,8 @@ import {
 import { ExecuteResult } from "@cosmjs/cosmwasm-stargate";
 import { CreatePlanInput } from "../types/utils";
 import React, { createContext, useContext, ReactNode } from "react";
-import { Plan } from "../types/utils";
+import { Plan, ParticipantCycleStatus } from "../types/utils";
+
 
 const contractAddress = import.meta.env.VITE_CONTRACT_ADDRESS;
 
@@ -21,6 +22,8 @@ interface ContractContextProps {
   approveJoinRequest: (planId: number, requester: string) => Promise<ExecuteResult>;
   denyJoinRequest: (planId: number, requester: string) => Promise<ExecuteResult>;
   getJoinRequests: (planId: number) => Promise<{ requests: string[] }>;
+  contribute: (planId: number, amountUxion: string) => Promise<ExecuteResult>;
+  getParticipantCycleStatus: (planId: number, participant: string) => Promise<ParticipantCycleStatus>;
 }
 
 
@@ -39,12 +42,8 @@ export const ContractProvider = ({ children }: { children: ReactNode }) => {
 		sender,
 		contractAddress,
 		{ CreatePlan: plan },
-		{
-			amount: [{ amount: "10000", denom: "uxion" }], // Fee payment
-			gas: "300000",
-			granter: import.meta.env.VITE_TREASURY_ADDRESS
-		},
-		"", // optional memo
+		"auto",
+		"",
 		[] 
 	);
 
@@ -98,11 +97,7 @@ export const ContractProvider = ({ children }: { children: ReactNode }) => {
 			sender,
 			contractAddress,
 			{ RequestToJoinPlan: { plan_id: planId } },
-			{
-			amount: [{ amount: "10000", denom: "uxion" }],
-			gas: "200000",
-			granter: import.meta.env.VITE_TREASURY_ADDRESS,
-			},
+			"auto",
 			"",
 			[]
 		);
@@ -121,11 +116,7 @@ export const ContractProvider = ({ children }: { children: ReactNode }) => {
 			sender,
 			contractAddress,
 			{ ApproveJoinRequest: { plan_id: planId, requester } },
-			{
-			amount: [{ amount: "10000", denom: "uxion" }],
-			gas: "300000",
-			granter: import.meta.env.VITE_TREASURY_ADDRESS,
-			},
+			"auto",
 			"",
 			[]
 		);
@@ -138,14 +129,29 @@ export const ContractProvider = ({ children }: { children: ReactNode }) => {
 			sender,
 			contractAddress,
 			{ DenyJoinRequest: { plan_id: planId, requester } },
-			{
-			amount: [{ amount: "10000", denom: "uxion" }],
-			gas: "300000",
-			granter: import.meta.env.VITE_TREASURY_ADDRESS,
-			},
+			"auto",
 			"",
 			[]
 		);
+	};
+
+	const contribute = async (planId: number, amountUxion: string) => {
+		if (!signingClient || !sender) throw new Error("Wallet not connected");
+		return signingClient.execute(
+			sender,
+			contractAddress,
+			{ Contribute: { plan_id: planId, amount: amountUxion } },
+			"auto",
+			"",
+			[{ denom: "uxion", amount: amountUxion }]
+		);
+	};
+
+	const getParticipantCycleStatus = async (planId: number, participant: string) => {
+		if (!queryClient) throw new Error("Query client not available");
+		return queryClient.queryContractSmart(contractAddress, {
+			GetParticipantCycleStatus: { plan_id: planId, participant }
+		});
 	};
 
   return (
@@ -160,6 +166,8 @@ export const ContractProvider = ({ children }: { children: ReactNode }) => {
 		getJoinRequests,
 		approveJoinRequest,
 		denyJoinRequest,
+		contribute,
+		getParticipantCycleStatus
 	}}>
       {children}
     </ContractContext.Provider>

@@ -24,13 +24,6 @@ pub enum ExecuteMsg {
     JoinPlan {
         plan_id: u64,
     },
-    Contribute {
-        plan_id: u64,
-        amount: Uint128,
-    },
-    DistributePayout {
-        plan_id: u64,
-    },
 	RequestToJoinPlan { 
 		plan_id: u64 
 	},
@@ -42,6 +35,10 @@ pub enum ExecuteMsg {
 		plan_id: u64, 
 		requester: String 
 	},
+	Contribute { 
+		plan_id: u64, 
+		amount: Uint128 
+	},
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema, QueryResponses)]
@@ -50,20 +47,21 @@ pub enum QueryMsg {
     GetPlan {
         plan_id: u64,
     },
-    #[returns(ParticipantStatus)]
-    GetParticipantStatus {
-        plan_id: u64,
-        participant: String,
-    },
 	#[returns(Vec<PlanResponse>)]
 	GetPlansByCreator {
 		creator: String
 	},
 	#[returns(u64)]
 	GetPlanCount {},
-
 	#[returns(JoinRequestsResponse)]
-	GetJoinRequests { plan_id: u64 },
+	GetJoinRequests { 
+		plan_id: u64 
+	},
+	#[returns(ParticipantCycleStatusResponse)]
+	GetParticipantCycleStatus { 
+		plan_id: u64, 
+		participant: String 
+	},
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -72,9 +70,11 @@ pub struct PlanResponse {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct ParticipantStatus {
-    pub contributed: Uint128,
-    pub received_payout: bool,
+pub struct ParticipantCycleStatusResponse {
+    pub required: Uint128,
+    pub contributed_this_cycle: Uint128,
+    pub remaining_this_cycle: Uint128,
+    pub fully_contributed: bool,
 }
 
 

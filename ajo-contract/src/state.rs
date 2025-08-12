@@ -51,4 +51,4 @@ pub const PLANS_BY_CREATOR: Map<&Addr, Vec<u64>> = Map::new("plans_by_creator");
 
 
 // (plan_id, participant_addr) => amount contributed
-pub const CONTRIBUTIONS: Map<(u64, &Addr), Uint128> = Map::new("contributions");
+pub const CONTRIBUTIONS_BY_CYCLE: Map<(u64 /*plan_id*/, u32 /*cycle*/, Addr), Uint128> = Map::new("contrib_cycle");
