@@ -31,7 +31,8 @@ const PlanDetail = () => {
 	getJoinRequests,
 	approveJoinRequest,
 	denyJoinRequest,
-	getParticipantCycleStatus
+	getParticipantCycleStatus,
+	getTrustScore
  } = useContract();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("overview");
@@ -166,6 +167,21 @@ const PlanDetail = () => {
   const handleContribute = async () => {
     setContributeModalOpen(true);
   };
+
+  const [trustScores, setTrustScores] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    const fetchScores = async () => {
+      const scores: Record<string, number> = {};
+      for (const participant of participants) {
+        const score = await getTrustScore(participant);
+        scores[participant] = Number(score);
+      }
+      setTrustScores(scores);
+    };
+
+    fetchScores();
+  }, [participants, refreshNonce]);
 
   if (!plan) {
     return (
@@ -352,7 +368,7 @@ const PlanDetail = () => {
                     {participants.map((participant, idx) => (
                       <div key={idx} className="flex justify-between p-3 border rounded">
                         <span className="font-mono">{participant}</span>
-                        <TrustScoreBadge score={50} />
+                        <TrustScoreBadge score={trustScores[participant] ?? 50} />
                       </div>
                     ))}
                   </CardContent>

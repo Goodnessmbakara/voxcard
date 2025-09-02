@@ -24,6 +24,7 @@ interface ContractContextProps {
   getJoinRequests: (planId: number) => Promise<{ requests: string[] }>;
   contribute: (planId: number, amountUxion: string) => Promise<ExecuteResult>;
   getParticipantCycleStatus: (planId: number, participant: string) => Promise<ParticipantCycleStatus>;
+  getTrustScore: (sender: string) => Promise<Number>;
 }
 
 
@@ -154,6 +155,13 @@ export const ContractProvider = ({ children }: { children: ReactNode }) => {
 		});
 	};
 
+	const getTrustScore = async (sender: string) => {
+		if (!queryClient) throw new Error("Query client not available");
+		return (await queryClient.queryContractSmart(contractAddress, {
+			GetTrustScore: { user: sender }
+		}));
+	}
+
   return (
     <ContractContext.Provider value={{
 		address: contractAddress,
@@ -167,7 +175,8 @@ export const ContractProvider = ({ children }: { children: ReactNode }) => {
 		approveJoinRequest,
 		denyJoinRequest,
 		contribute,
-		getParticipantCycleStatus
+		getParticipantCycleStatus,
+		getTrustScore
 	}}>
       {children}
     </ContractContext.Provider>

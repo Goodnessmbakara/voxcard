@@ -27,8 +27,10 @@ export interface Plan {
 }
 
 export type ParticipantCycleStatus = {
+  cycle: number;
   required: string;
   contributed_this_cycle: string;
   remaining_this_cycle: string;
   fully_contributed: boolean;
+  debt: string;
 };

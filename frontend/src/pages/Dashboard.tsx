@@ -1,13 +1,7 @@
 import { useState, useEffect } from 'react';
-import { mockPlans, mockPayouts, getUserPlans, defaultUser } from '@/lib/mock-data';
+import { mockPayouts, defaultUser } from '@/lib/mock-data';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import {
-  Abstraxion,
-  useAbstraxionAccount,
-  useAbstraxionSigningClient,
-  useModal,
-} from "@burnt-labs/abstraxion";
 import XionWalletService from '@/services/blockchain';
 import PlanCard from '@/components/shared/PlanCard';
 import TrustScoreBadge from '@/components/shared/TrustScoreBadge';
@@ -86,13 +80,14 @@ const ManageWalletModal = ({ open, onClose, address }: { open: boolean; onClose:
 };
 
 const Dashboard = () => {
-	const { account, getPlansByCreator } = useContract();
+	const { account, getPlansByCreator, getTrustScore } = useContract();
 	const [userPlans, setUserPlans] = useState<Plan[]>([]);
   const wallet = XionWalletService.useWallet();
 
 
   const [activeTab, setActiveTab] = useState('overview');
   const [showWalletModal, setShowWalletModal] = useState(false);
+  const [trustScore, setTrustScore] = useState(50);
 
   // Mock data usage
   const user = defaultUser;
@@ -101,13 +96,17 @@ const Dashboard = () => {
 	useEffect(() => {
 		const fetchPlans = async () => {
 			if (account) {
-			const response = await getPlansByCreator(account);
+				const response = await getPlansByCreator(account);
 
-			const normalizedPlans = response.map((item: any) => item.plan);
+				const normalizedPlans = response.map((item: any) => item.plan);
 
-			setUserPlans(normalizedPlans);
+				setUserPlans(normalizedPlans);
+
+				const res = await getTrustScore(account);
+				setTrustScore(Number(res))
 			}
 		};
+		
 		fetchPlans();
 	}, [account]);
 
@@ -124,13 +123,13 @@ const Dashboard = () => {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
           <div>
             <h1 className="text-3xl font-heading font-bold mb-2 text-vox-secondary">Dashboard</h1>
-            <p className="text-vox-secondary/70 font-sans">Manage your savings plans and track your progress.</p>
+            <p className="text-vox-secondary/70 font-sans">Manage your savings group and track your progress.</p>
           </div>
           {wallet.isConnected && (
             <Link to="/create-plan" className="mt-4 md:mt-0">
               <Button className="gradient-bg text-white font-sans hover:opacity-90 transition-opacity">
                 <Plus size={16} className="mr-2" />
-                Create Plan
+                Create Group
               </Button>
             </Link>
           )}
@@ -157,7 +156,7 @@ const Dashboard = () => {
                 </div>
                 <h2 className="text-xl font-heading font-bold text-center text-vox-secondary mb-2">Sign In to Account</h2>
                 <p className="text-center text-vox-secondary/70 mb-6 font-sans">
-                  Please sign in to view your dashboard and manage your plans.
+                  Please sign in to view your dashboard and manage your group.
                 </p>
               </motion.div>
             </motion.div>
@@ -185,11 +184,11 @@ const Dashboard = () => {
                             {shortenAddress(address)}
                           </p>
                         </div>
-                        <TrustScoreBadge score={user.trustScore} />
+                        <TrustScoreBadge score={trustScore} />
                       </div>
                       <div>
                         <p className="text-sm text-vox-secondary/60 font-sans mb-1">Trust Score Progress</p>
-                        <Progress value={user.trustScore} className="h-2 bg-vox-primary/10" />
+                        <Progress value={trustScore} className="h-2 bg-vox-primary/10" />
                       </div>
                       <div className="pt-2">
                         <Button
@@ -211,7 +210,7 @@ const Dashboard = () => {
                     <CardContent className="space-y-4">
                       <div className="flex justify-between items-center">
                         <div>
-                          <p className="text-sm text-vox-secondary/60 font-sans">Active Plans</p>
+                          <p className="text-sm text-vox-secondary/60 font-sans">Active Groups</p>
                           <p className="text-xl font-bold text-vox-secondary">{userPlans.length}</p>
                         </div>
                         <div>
@@ -241,7 +240,7 @@ const Dashboard = () => {
                   <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                     <TabsList className="mb-6">
                       <TabsTrigger value="overview">Overview</TabsTrigger>
-                      <TabsTrigger value="plans">Your Plans</TabsTrigger>
+                      <TabsTrigger value="plans">Your Groups</TabsTrigger>
                       <TabsTrigger value="contributions">Contributions</TabsTrigger>
                     </TabsList>
 
@@ -269,7 +268,7 @@ const Dashboard = () => {
 									Welcome to VoxCard!
 								</CardTitle>
 								<CardDescription className="text-vox-secondary/70 font-sans">
-									You haven't joined any active savings plans yet. Get started by creating or joining a plan.
+									You haven't joined any active savings group yet. Get started by creating or joining a group.
 								</CardDescription>
 								</CardHeader>
 								<CardContent className="flex flex-col items-center py-6">
@@ -277,19 +276,19 @@ const Dashboard = () => {
 									<Wallet size={36} className="text-vox-primary" />
 								</div>
 								<p className="text-center text-vox-secondary/70 mb-6 max-w-md font-sans">
-									Join a community savings plan to start pooling resources with others,
-									or create your own plan and invite friends and family.
+									Join a community savings group to start pooling resources with others,
+									or create your own group and invite friends and family.
 								</p>
 								</CardContent>
 								<CardFooter className="flex flex-col sm:flex-row gap-3">
 								<Link to="/plans" className="w-full sm:w-auto">
 									<Button className="w-full font-sans border-vox-primary text-vox-primary hover:bg-vox-primary/10">
-									Browse Plans
+									Browse Groups
 									</Button>
 								</Link>
 								<Link to="/create-plan" className="w-full sm:w-auto">
 									<Button className="w-full gradient-bg text-white font-sans hover:opacity-90 transition-opacity">
-									Create a Plan
+									Create a Group
 									</Button>
 								</Link>
 								</CardFooter>
@@ -301,16 +300,16 @@ const Dashboard = () => {
 
                     <TabsContent value="plans">
                       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-                        <h2 className="text-xl font-heading font-semibold text-vox-secondary">All Your Plans</h2>
+                        <h2 className="text-xl font-heading font-semibold text-vox-secondary">All Your Groups</h2>
                         {userPlans.length > 0 ? (
                           userPlans.map((p) => (
                             <PlanCard key={p.id} plan={p} />
                           ))
                         ) : (
                           <div className="text-center py-12">
-                            <p className="text-vox-secondary/70 mb-4 font-sans">You haven't joined any plans yet.</p>
+                            <p className="text-vox-secondary/70 mb-4 font-sans">You haven't joined any group yet.</p>
                             <Link to="/plans">
-                              <Button className="gradient-bg text-white font-sans hover:opacity-90 transition-opacity">Browse Plans</Button>
+                              <Button className="gradient-bg text-white font-sans hover:opacity-90 transition-opacity">Browse Groups</Button>
                             </Link>
                           </div>
                         )}
@@ -322,7 +321,7 @@ const Dashboard = () => {
                         <h2 className="text-xl font-heading font-semibold text-vox-secondary">Your Recent Contributions</h2>
                         <div className="rounded-lg border overflow-hidden">
                           <div className="grid grid-cols-12 bg-vox-primary/5 p-3 border-b">
-                            <div className="col-span-4 font-medium font-sans text-vox-secondary">Plan</div>
+                            <div className="col-span-4 font-medium font-sans text-vox-secondary">Group</div>
                             <div className="col-span-3 font-medium font-sans text-vox-secondary">Amount</div>
                             <div className="col-span-3 font-medium font-sans text-vox-secondary">Date</div>
                             <div className="col-span-2 font-medium font-sans text-vox-secondary">Round</div>

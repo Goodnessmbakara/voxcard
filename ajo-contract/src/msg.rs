@@ -62,6 +62,10 @@ pub enum QueryMsg {
 		plan_id: u64, 
 		participant: String 
 	},
+	#[returns(u64)]
+	GetTrustScore {
+		user: String
+	},
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -71,10 +75,12 @@ pub struct PlanResponse {
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct ParticipantCycleStatusResponse {
+	pub cycle: u64,
     pub required: Uint128,
     pub contributed_this_cycle: Uint128,
     pub remaining_this_cycle: Uint128,
     pub fully_contributed: bool,
+	pub debt: Uint128,
 }
 
 

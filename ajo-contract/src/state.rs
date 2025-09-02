@@ -30,6 +30,7 @@ pub struct Plan {
     pub current_cycle: u32,
     pub is_active: bool,
     pub payout_index: u32,
+	pub balance: Uint128,
 	pub created_by: Addr,
 }
 
@@ -51,4 +52,10 @@ pub const PLANS_BY_CREATOR: Map<&Addr, Vec<u64>> = Map::new("plans_by_creator");
 
 
 // (plan_id, participant_addr) => amount contributed
-pub const CONTRIBUTIONS_BY_CYCLE: Map<(u64 /*plan_id*/, u32 /*cycle*/, Addr), Uint128> = Map::new("contrib_cycle");
+pub const CONTRIBUTIONS: Map<(u64, Addr, u64), Uint128> = Map::new("contrib");
+pub const USER_DEBT: Map<(u64, Addr), Uint128> = Map::new("user_debt");
+pub const TRUST_SCORE: Map<&Addr, u64> = Map::new("trust_scores");
+
+
+pub const PARTICIPANT_START: Map<(u64, Addr), u64> = Map::new("participant_start");
+

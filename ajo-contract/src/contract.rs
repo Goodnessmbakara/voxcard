@@ -1,17 +1,14 @@
 // src/contract.rs
 
 use cosmwasm_std::{
-    entry_point, to_json_binary, Binary, Deps, DepsMut, Env,
-    MessageInfo, Response, StdResult, StdError, Uint128,
+    entry_point, to_json_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult, Uint128
 };
 
 use crate::error::ContractError;
-use crate::msg::{ExecuteMsg, InstantiateMsg, PlanResponse, QueryMsg, JoinRequestsResponse, ParticipantCycleStatusResponse};
-use crate::state::{Config, 
-	Frequency, Plan, 
-	CONFIG, PLAN_COUNT, 
-	PLANS, PLANS_BY_CREATOR, 
-	CONTRIBUTIONS_BY_CYCLE, JOIN_REQUESTS, JoinRequest};
+use crate::msg::{ExecuteMsg, InstantiateMsg, 
+	PlanResponse, QueryMsg, JoinRequestsResponse, 
+	ParticipantCycleStatusResponse};
+use crate::state::{Config, Frequency, JoinRequest, Plan, CONFIG, CONTRIBUTIONS, JOIN_REQUESTS, PARTICIPANT_START, PLANS, PLANS_BY_CREATOR, PLAN_COUNT, TRUST_SCORE, USER_DEBT};
 use cw2::set_contract_version;
 
 const CONTRACT_NAME: &str = "crates.io:ajo-contract";
@@ -52,6 +49,7 @@ pub fn execute(
             allow_partial,
         } => execute_create_plan(
             deps,
+			env,
 			info,
             name,
             description,
@@ -78,6 +76,7 @@ pub fn execute(
 
 fn execute_create_plan(
     deps: DepsMut,
+	env: Env,
 	info: MessageInfo,
     name: String,
     description: String,
@@ -121,6 +120,7 @@ fn execute_create_plan(
         current_cycle: 0,
         is_active: true,
         payout_index: 0,
+        balance: Uint128::zero(),
 		created_by: info.sender.clone(),
     };
 
@@ -133,6 +133,8 @@ fn execute_create_plan(
 		.unwrap_or_default();
 	ids.push(plan_id);
 	PLANS_BY_CREATOR.save(deps.storage, &info.sender, &ids)?;
+	let now = env.block.time.seconds();
+	PARTICIPANT_START.save(deps.storage, (plan_id, info.sender.clone()), &now)?;
 
     Ok(Response::new()
         .add_attribute("method", "create_plan")
@@ -172,13 +174,13 @@ fn execute_join_plan(deps: DepsMut, info: MessageInfo, plan_id: u64) -> Result<R
 
 fn execute_contribute(
     deps: DepsMut,
-    _env: Env,
+    env: Env,
     info: MessageInfo,
     plan_id: u64,
     amount: Uint128,
 ) -> Result<Response, ContractError> {
-    let plan = PLANS.load(deps.storage, plan_id)?;
-    let sender = info.sender.clone();
+    let mut plan = PLANS.load(deps.storage, plan_id)?;
+	let sender = info.sender.clone();
 
     if !plan.is_active {
         return Err(ContractError::PlanNotActive {});
@@ -187,45 +189,128 @@ fn execute_contribute(
         return Err(ContractError::NotParticipant {});
     }
 
-    // validate funds
+    // Validate funds sent in uxion cover the declared `amount`
     let sent = info.funds.iter().find(|c| c.denom == "uxion").map(|c| c.amount).unwrap_or_default();
     if sent < amount {
         return Err(ContractError::InvalidInput("Insufficient funds sent".to_string()));
     }
 
-    let cycle = plan.current_cycle; // u32
-    let key = (plan_id, cycle, sender.clone());
-    let already = CONTRIBUTIONS_BY_CYCLE.may_load(deps.storage, key.clone())?.unwrap_or_default();
+    // Must have a personal start time (set when approved)
+    let start_opt = PARTICIPANT_START.may_load(deps.storage, (plan_id, sender.clone()))?;
+    let start = start_opt.ok_or_else(|| ContractError::InvalidInput("participant not started".into()))?;
 
-    // how much room left this cycle
-    let required = plan.contribution_amount;
-    if already >= required {
+    // Current personal cycle
+    let frequency_str = match &plan.frequency {
+        Frequency::Daily => "Daily",
+        Frequency::Weekly => "Weekly",
+        Frequency::Monthly => "Monthly",
+    };
+    let cycle = current_cycle_for_participant(start, &env, frequency_str);
+
+    // If first top-up in this cycle, roll last cycle's unpaid portion into debt
+    let already = CONTRIBUTIONS
+        .may_load(deps.storage, (plan_id, sender.clone(), cycle))?
+        .unwrap_or_default();
+
+    if cycle > 0 && already.is_zero() {
+        // Look at previous cycle
+        let prev_cycle = cycle - 1;
+        let prev_paid = CONTRIBUTIONS
+            .may_load(deps.storage, (plan_id, sender.clone(), prev_cycle))?
+            .unwrap_or_default();
+        let prev_debt = plan.contribution_amount.saturating_sub(prev_paid);
+        if !prev_debt.is_zero() {
+            let existing = USER_DEBT
+                .may_load(deps.storage, (plan_id, sender.clone()))?
+                .unwrap_or_default();
+            USER_DEBT.save(deps.storage, (plan_id, sender.clone()), &(existing + prev_debt))?;
+        }
+    }
+
+    // Debt carried from earlier cycles (does NOT include this cycle’s required amount)
+    let debt = USER_DEBT
+        .may_load(deps.storage, (plan_id, sender.clone()))?
+        .unwrap_or_default();
+
+    // Target for THIS cycle = normal + prior debt
+    let required_this_cycle = plan.contribution_amount + debt;
+
+    // If we already reached or exceeded target, block further payment
+    if already >= required_this_cycle {
         return Err(ContractError::InvalidInput("Already fully contributed this cycle".to_string()));
     }
 
-    if !plan.allow_partial && amount != required {
+    // If partials not allowed, you must pay the exact remaining now
+    let remaining = required_this_cycle.checked_sub(already).unwrap_or_default();
+    if !plan.allow_partial && amount != remaining {
         return Err(ContractError::InvalidInput("Must contribute exact amount".to_string()));
     }
 
-    // For partials, cap the top-up so they never exceed the per-cycle target
-    let remaining = required.checked_sub(already).unwrap_or_default();
+    // Do not allow over-payment beyond this cycle target
     if amount > remaining {
         return Err(ContractError::InvalidInput("Contribution exceeds remaining for this cycle".to_string()));
     }
 
-    // Save per-cycle
-    CONTRIBUTIONS_BY_CYCLE.save(deps.storage, key, &(already + amount))?;
+    // --- Accumulate this cycle’s contribution ---
+    let new_total = already + amount;
 
-    // Optional: keep lifetime total too
-    // let lifetime_key = (plan_id, sender.clone());
-    // let life = CONTRIBUTIONS.may_load(deps.storage, lifetime_key)?.unwrap_or_default();
-    // CONTRIBUTIONS.save(deps.storage, lifetime_key, &(life + amount))?;
+	let mut trust_score = TRUST_SCORE
+		.may_load(deps.storage, &sender)?
+		.unwrap_or(50);
+	
+	// Case 1: full payment at once
+	if amount == plan.contribution_amount && debt.is_zero() && already.is_zero() {
+		trust_score += 10;
+	}
+
+	// Case 2: partial payment allowed
+	else if amount < plan.contribution_amount && plan.allow_partial {
+		trust_score += 5;
+	}
+
+	// Case 3: late payment (previous cycle unpaid but now covering it)
+	else if !debt.is_zero() && amount > Uint128::zero() {
+		trust_score += 4;
+	}
+
+	// Case 4: missed cycle entirely (already handled above, mark penalty here)
+	if cycle > 0 {
+		let prev_cycle = cycle - 1;
+		let prev_paid = CONTRIBUTIONS
+			.may_load(deps.storage, (plan_id, sender.clone(), prev_cycle))?
+			.unwrap_or_default();
+		if prev_paid.is_zero() {
+			trust_score -= 15;
+		}
+	}
+
+
+	plan.balance += amount;
+    // --- Update debt progressively ---
+    // Payment applies first to this cycle's normal contribution amount.
+    // Any excess beyond `contribution_amount` reduces old `debt`.
+    // extra_applied_to_debt = max(0, new_total - contribution_amount)
+    let extra_applied_to_debt = if new_total > plan.contribution_amount {
+        new_total.checked_sub(plan.contribution_amount).unwrap_or_default()
+    } else {
+        Uint128::zero()
+    };
+    let new_debt = debt.saturating_sub(extra_applied_to_debt);
+
+    // Persist state
+    TRUST_SCORE.save(deps.storage, &sender, &trust_score)?;
+    PLANS.save(deps.storage, plan_id, &plan)?;
+    CONTRIBUTIONS.save(deps.storage, (plan_id, sender.clone(), cycle), &new_total)?;
+    USER_DEBT.save(deps.storage, (plan_id, sender.clone()), &new_debt)?;
 
     Ok(Response::new()
         .add_attribute("action", "contribute")
         .add_attribute("plan_id", plan_id.to_string())
         .add_attribute("cycle", cycle.to_string())
-        .add_attribute("amount", amount.to_string()))
+        .add_attribute("from", info.sender)
+        .add_attribute("amount", amount.to_string())
+        .add_attribute("contributed_total_this_cycle", new_total.to_string())
+        .add_attribute("debt_after", new_debt.to_string()))
 }
 
 
@@ -235,44 +320,36 @@ fn execute_contribute(
 //     info: MessageInfo,
 //     plan_id: u64,
 // ) -> Result<Response, ContractError> {
-//     let config = CONFIG.load(deps.storage)?;
 //     let mut plan = PLANS.load(deps.storage, plan_id)?;
 
-//     if info.sender != config.admin {
-//         return Err(ContractError::Unauthorized("Only admin can distribute payouts".to_string()));
-//     }
 //     if !plan.is_active {
 //         return Err(ContractError::PlanNotActive {});
 //     }
 
 //     let total_required = plan.contribution_amount * Uint128::from(plan.participants.len() as u128);
-//     let mut total_actual = Uint128::zero();
 
-//     for p in &plan.participants {
-//         let addr = deps.api.addr_validate(p)?;
-//         total_actual += CONTRIBUTIONS.may_load(deps.storage, (plan_id, &addr))?.unwrap_or(Uint128::zero());
-//     }
+// 	if plan.balance < total_required {
+// 		return Err(ContractError::InsufficientContributions {});
+// 	}
 
-//     if total_actual < total_required {
-//         return Err(ContractError::InsufficientContributions {});
-//     }
+// 	let recipient = deps.api.addr_validate(&plan.participants[plan.payout_index as usize])?;
+// 	let payout = plan.balance;
 
-//     let recipient_str = &plan.participants[plan.payout_index as usize];
-//     let recipient = deps.api.addr_validate(recipient_str)?;
-//     let payout = total_required;
+// 	plan.balance = Uint128::zero();
 
-//     for p in &plan.participants {
-//         let addr = deps.api.addr_validate(p)?;
-//         CONTRIBUTIONS.save(deps.storage, (plan_id, &addr), &Uint128::zero())?;
-//     }
+// 	for p in &plan.participants {
+// 		let addr = deps.api.addr_validate(p)?;
+// 		CONTRIBUTIONS.save(deps.storage, (plan_id, &addr), &Uint128::zero())?;
+// 	}
 
-//     plan.payout_index = (plan.payout_index + 1) % plan.participants.len() as u32;
-//     plan.current_cycle += 1;
-//     if plan.current_cycle >= plan.duration_months * plan_frequency_to_cycles(&plan.frequency) {
-//         plan.is_active = false;
-//     }
+// 	plan.payout_index = (plan.payout_index + 1) % plan.participants.len() as u32;
+// 	plan.current_cycle += 1;
+// 	if plan.current_cycle >= plan.duration_months * plan_frequency_to_cycles(&plan.frequency) {
+// 		plan.is_active = false;
+// 	}
 
-//     PLANS.save(deps.storage, plan_id, &plan)?;
+// 	PLANS.save(deps.storage, plan_id, &plan)?;
+
 
 //     let bank_msg = BankMsg::Send {
 //         to_address: recipient.to_string(),
@@ -311,8 +388,12 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
 			let res = query_join_requests(deps, plan_id)?;
 			to_json_binary(&res)
 		}
-		QueryMsg::GetParticipantCycleStatus { plan_id, participant } => {
-            to_json_binary(&query_participant_cycle_status(deps, plan_id, participant)?)
+        QueryMsg::GetParticipantCycleStatus { plan_id, participant } => {
+            to_json_binary(&query_participant_cycle_status(deps, _env, plan_id, participant)?)
+        }
+        QueryMsg::GetTrustScore { user } => { 
+            let res = query_trust_score(deps, user)?;
+            to_json_binary(&res)
         }
     }
 }
@@ -337,6 +418,19 @@ fn query_plans_by_creator(
     }
 
     Ok(plans)
+}
+
+fn query_trust_score(
+	deps: Deps,
+	user: String
+) -> StdResult<u64> {
+	let account: Addr = deps.api.addr_validate(&user)?;
+
+	let trust_score = TRUST_SCORE
+		.may_load(deps.storage, &account)?
+		.unwrap_or(50);
+
+	Ok(trust_score)
 }
 
 pub fn request_to_join_plan(
@@ -389,12 +483,22 @@ pub fn approve_join_request(
         Ok::<JoinRequest, ContractError>(request)
     })?;
 
+	let mut trust_score = TRUST_SCORE
+		.may_load(deps.storage, &requester_addr)?
+		.unwrap_or(50);
+
     // Now apply side effects *after* the update to avoid borrow conflict
     if updated_request.approvals.len() * 2 >= plan.participants.len() {
         // 50%+ approved: add to participants, save plan, remove request
         plan.participants.push(requester_addr.to_string());
+		trust_score += 2;
+
+        let now = _env.block.time.seconds();
+        let requester_addr = deps.api.addr_validate(&requester)?;
+        PARTICIPANT_START.save(deps.storage, (plan_id, requester_addr.clone()), &now)?;
         PLANS.save(deps.storage, plan_id, &plan)?;
         JOIN_REQUESTS.remove(deps.storage, key);
+		TRUST_SCORE.save(deps.storage, &requester_addr, &trust_score)?;
     }
 
     Ok(Response::new()
@@ -454,25 +558,56 @@ pub fn deny_join_request(
 
 fn query_participant_cycle_status(
     deps: Deps,
+    env: Env,
     plan_id: u64,
     participant: String,
 ) -> StdResult<ParticipantCycleStatusResponse> {
     let plan = PLANS.load(deps.storage, plan_id)?;
     let addr = deps.api.addr_validate(&participant)?;
-    let cycle = plan.current_cycle;
 
-    let contributed = CONTRIBUTIONS_BY_CYCLE
-        .may_load(deps.storage, (plan_id, cycle, addr))?
-        .unwrap_or_default();
+    let start = PARTICIPANT_START.may_load(deps.storage, (plan_id, addr.clone()))?;
+    
+    let frequency_str = match &plan.frequency {
+        Frequency::Daily => "Daily",
+        Frequency::Weekly => "Weekly",
+        Frequency::Monthly => "Monthly",
+    };
+    let cycle = current_cycle_for_participant(start.unwrap_or(0), &env, frequency_str);
+
+    let contributed = CONTRIBUTIONS
+        .may_load(deps.storage, (plan_id, addr.clone(), cycle))?
+        .unwrap_or_else(Uint128::zero);
+
+    let debt = USER_DEBT
+        .may_load(deps.storage, (plan_id, addr.clone()))?
+        .unwrap_or_else(Uint128::zero);
 
     let required = plan.contribution_amount;
     let remaining = required.saturating_sub(contributed);
     let fully = contributed >= required;
 
     Ok(ParticipantCycleStatusResponse {
+        cycle: cycle,
         required,
         contributed_this_cycle: contributed,
         remaining_this_cycle: remaining,
         fully_contributed: fully,
+        debt: debt,
     })
+}
+
+fn cycles_between(start: u64, now: u64, frequency: &str) -> u64 {
+    if now <= start { return 0; }
+    let seconds = now - start;
+    match frequency {
+        "Daily" | "daily" => seconds / 86_400,
+        "Weekly" | "weekly" => seconds / (7 * 86_400),
+        "Monthly" | "monthly" => seconds / (30 * 86_400),
+        _ => 0,
+    }
+}
+
+// Per-participant current cycle: uses their personal start time
+fn current_cycle_for_participant(start_time: u64, env: &Env, frequency: &str) -> u64 {
+    cycles_between(start_time, env.block.time.seconds(), frequency)
 }
