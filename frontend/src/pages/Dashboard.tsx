@@ -19,10 +19,11 @@ import { Plan } from '../types/utils';
 const explorerUrl = (address: string) => `https://www.mintscan.io/xion-testnet/address/${address}`;
 
 const ManageWalletModal = ({ open, onClose, address }: { open: boolean; onClose: () => void; address: string; }) => {
+	const { balance } = useContract();
   const [copied, setCopied] = useState(false);
 
   const walletAddress = address;
-
+	
   const handleCopy = () => {
     if (walletAddress) {
       navigator.clipboard.writeText(walletAddress);
@@ -43,7 +44,7 @@ const ManageWalletModal = ({ open, onClose, address }: { open: boolean; onClose:
         <div className="space-y-4">
 			<div className="flex items-center justify-between">
 				<div className="text-sm text-gray-500">Balance</div>
-				<div className="font-semibold">-- XION</div>
+				<div className="font-semibold">{balance} XION</div>
 			</div>
           <div className="flex items-center gap-2 bg-gray-50 rounded px-3 py-2">
             <span className="font-mono text-xs break-all">

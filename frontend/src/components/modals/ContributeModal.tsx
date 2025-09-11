@@ -21,7 +21,7 @@ import type { ParticipantCycleStatus } from "@/types/utils";
 
 interface ContributeModalProps {
   plan: Plan;
-  cycleStatus: ParticipantCycleStatus;
+  cycleStatus?: ParticipantCycleStatus;
   open: boolean;
   onClose: () => void;
   onSuccess: () => void;
@@ -32,7 +32,7 @@ const ContributeModal = ({ plan, cycleStatus, open, onClose, onSuccess }: Contri
   const { data: account } = useAbstraxionAccount();
   const { contribute } = useContract();
 
-  const defaultAmount = String(cycleStatus.remaining_this_cycle);
+  const defaultAmount = String(cycleStatus?.remaining_this_cycle);
   const [amountUxion, setAmountUxion] = useState(defaultAmount);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -96,12 +96,12 @@ const ContributeModal = ({ plan, cycleStatus, open, onClose, onSuccess }: Contri
 		if (/^\d*$/.test(value)) {
 			const numericValue = parseInt(value, 10);
 			// Check if the value is within the range
-			if (value === '' || (numericValue >= 1 && numericValue <= Number(cycleStatus.remaining_this_cycle))) {
+			if (value === '' || (numericValue >= 1 && numericValue <= Number(cycleStatus?.remaining_this_cycle))) {
 				setAmountUxion(value);
 			} else if (numericValue < 1) {
 				setAmountUxion('1'); // Reset to minimum
-			} else if (numericValue > Number(cycleStatus.remaining_this_cycle)) {
-				setAmountUxion(cycleStatus.remaining_this_cycle); // Reset to maximum
+			} else if (numericValue > Number(cycleStatus?.remaining_this_cycle)) {
+				setAmountUxion(cycleStatus?.remaining_this_cycle); // Reset to maximum
 			}
 		}
 	};
@@ -128,7 +128,7 @@ const ContributeModal = ({ plan, cycleStatus, open, onClose, onSuccess }: Contri
 						inputMode="numeric"
 						value={amountUxion}
 						onChange={(e) => handleChange(e)}
-						placeholder={`e.g. ${cycleStatus.remaining_this_cycle}`}
+						placeholder={`e.g. ${cycleStatus?.remaining_this_cycle}`}
 					/>
 					<p className="text-sm text-gray-500">
 						Partial payments allowed. Enter whole-number uxion.
@@ -160,8 +160,8 @@ const ContributeModal = ({ plan, cycleStatus, open, onClose, onSuccess }: Contri
                   <p>• Frequency: {plan.frequency.toLowerCase()}</p>
                   {plan.allow_partial && <>
 					<p>Partial payments allowed</p>
-					<p>Contributed: {cycleStatus.contributed_this_cycle} uxion</p>
-					<p>Left: {cycleStatus.remaining_this_cycle} uxion</p>
+					<p>Contributed: {cycleStatus?.contributed_this_cycle} uxion</p>
+					<p>Left: {cycleStatus?.remaining_this_cycle} uxion</p>
 				  </>}
                 </div>
               </div>

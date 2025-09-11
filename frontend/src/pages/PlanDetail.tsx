@@ -181,7 +181,7 @@ const PlanDetail = () => {
     };
 
     fetchScores();
-  }, [participants, refreshNonce]);
+  }, [participants]);
 
   if (!plan) {
     return (
@@ -321,12 +321,12 @@ const PlanDetail = () => {
 						<CardTitle>Your Contribution</CardTitle>
 					</CardHeader>
 					<CardContent className="space-y-4">
-						{cycleStatus.fully_contributed ? (
+						{cycleStatus?.fully_contributed ? (
 							<p>You have completed payment for this cycle.</p>
 						) : (
 							<>
-								<p>Xion contributed to Cycle: <b>{cycleStatus.contributed_this_cycle} Xion</b></p>
-								<p>Xion unpaid to Cycle: <b>{cycleStatus.remaining_this_cycle} Xion</b></p>
+								<p>Xion contributed to Cycle: <b>{cycleStatus?.contributed_this_cycle} Xion</b></p>
+								<p>Xion unpaid to Cycle: <b>{cycleStatus?.remaining_this_cycle} Xion</b></p>
 							</>
 						)}
 					</CardContent>

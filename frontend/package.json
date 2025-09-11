@@ -10,10 +10,10 @@
         "lint": "eslint .",
         "preview": "vite preview"
     },
-    
     "dependencies": {
         "@burnt-labs/abstraxion": "^1.0.0-alpha.62",
         "@burnt-labs/ui": "0.1.0-alpha.17",
+        "@cosmjs/stargate": "^0.36.0",
         "@hookform/resolvers": "^3.9.0",
         "@radix-ui/react-accordion": "^1.2.0",
         "@radix-ui/react-alert-dialog": "^1.1.1",

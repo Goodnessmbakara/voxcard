@@ -1,7 +1,9 @@
 // src/contract.rs
 
 use cosmwasm_std::{
-    entry_point, to_json_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult, Uint128
+    entry_point, to_json_binary, Addr, Binary, Deps, 
+	DepsMut, Env, MessageInfo, Response, StdError, 
+	StdResult, Uint128, BankMsg, Coin
 };
 
 use crate::error::ContractError;
@@ -303,69 +305,83 @@ fn execute_contribute(
     CONTRIBUTIONS.save(deps.storage, (plan_id, sender.clone(), cycle), &new_total)?;
     USER_DEBT.save(deps.storage, (plan_id, sender.clone()), &new_debt)?;
 
-    Ok(Response::new()
-        .add_attribute("action", "contribute")
-        .add_attribute("plan_id", plan_id.to_string())
-        .add_attribute("cycle", cycle.to_string())
-        .add_attribute("from", info.sender)
-        .add_attribute("amount", amount.to_string())
-        .add_attribute("contributed_total_this_cycle", new_total.to_string())
-        .add_attribute("debt_after", new_debt.to_string()))
+    // ...right before returning Ok(Response::new()...)
+let mut resp = Response::new()
+    .add_attribute("action", "contribute")
+    .add_attribute("plan_id", plan_id.to_string())
+    .add_attribute("cycle", cycle.to_string())
+    .add_attribute("from", info.sender)
+    .add_attribute("amount", amount.to_string())
+    .add_attribute("contributed_total_this_cycle", new_total.to_string())
+    .add_attribute("debt_after", new_debt.to_string());
+
+// attempt a payout if the pot has enough for one full round
+if let Some(bank_msg) = try_auto_payout(deps, &env, plan_id)? {
+    resp = resp
+        .add_message(bank_msg)
+        .add_attribute("auto_payout", "true");
+}
+
+Ok(resp)
+
 }
 
 
-// fn execute_distribute_payout(
-//     deps: DepsMut,
-//     _env: Env,
-//     info: MessageInfo,
-//     plan_id: u64,
-// ) -> Result<Response, ContractError> {
-//     let mut plan = PLANS.load(deps.storage, plan_id)?;
+fn try_auto_payout(
+    deps: DepsMut,
+    _env: &Env,
+    plan_id: u64,
+) -> Result<Option<BankMsg>, ContractError> {
+    let mut plan = PLANS.load(deps.storage, plan_id)?;
 
-//     if !plan.is_active {
-//         return Err(ContractError::PlanNotActive {});
-//     }
+    if !plan.is_active {
+        return Ok(None);
+    }
 
-//     let total_required = plan.contribution_amount * Uint128::from(plan.participants.len() as u128);
+    let total_required =
+        plan.contribution_amount * Uint128::from(plan.participants.len() as u128);
 
-// 	if plan.balance < total_required {
-// 		return Err(ContractError::InsufficientContributions {});
-// 	}
+    // Only trigger when one full round is fundable
+    if plan.balance < total_required {
+        return Ok(None);
+    }
 
-// 	let recipient = deps.api.addr_validate(&plan.participants[plan.payout_index as usize])?;
-// 	let payout = plan.balance;
+    // Pay exactly one round; keep any extra in balance
+    plan.balance = plan
+        .balance
+        .checked_sub(total_required)
+        .map_err(|_| ContractError::InvalidInput("underflow".into()))?;
 
-// 	plan.balance = Uint128::zero();
+    // Round-robin recipient
+    let recipient = deps
+        .api
+        .addr_validate(&plan.participants[plan.payout_index as usize])?;
 
-// 	for p in &plan.participants {
-// 		let addr = deps.api.addr_validate(p)?;
-// 		CONTRIBUTIONS.save(deps.storage, (plan_id, &addr), &Uint128::zero())?;
-// 	}
+    plan.payout_index = (plan.payout_index + 1) % plan.participants.len() as u32;
+    plan.current_cycle += 1;
 
-// 	plan.payout_index = (plan.payout_index + 1) % plan.participants.len() as u32;
-// 	plan.current_cycle += 1;
-// 	if plan.current_cycle >= plan.duration_months * plan_frequency_to_cycles(&plan.frequency) {
-// 		plan.is_active = false;
-// 	}
+    // Optional: end plan after enough global cycles
+    let total_cycles = plan.duration_months * cycles_per_month(&plan.frequency);
+	if plan.current_cycle >= total_cycles {
+		plan.is_active = false;
+	}
 
-// 	PLANS.save(deps.storage, plan_id, &plan)?;
+    PLANS.save(deps.storage, plan_id, &plan)?;
 
+    // NOTE: we are NOT zeroing per-user contributions here because your design uses
+    // per-participant “personal cycles” (based on PARTICIPANT_START). If you later
+    // switch to shared/global cycles, you’ll want to reset per-cycle buckets.
 
-//     let bank_msg = BankMsg::Send {
-//         to_address: recipient.to_string(),
-//         amount: vec![Coin {
-//             denom: "uxion".to_string(),
-//             amount: payout,
-//         }],
-//     };
+    let bank_msg = BankMsg::Send {
+        to_address: recipient.to_string(),
+        amount: vec![Coin {
+            denom: "uxion".to_string(),
+            amount: total_required,
+        }],
+    };
 
-//     Ok(Response::new()
-//         .add_message(bank_msg)
-//         .add_attribute("method", "distribute_payout")
-//         .add_attribute("plan_id", plan_id.to_string())
-//         .add_attribute("recipient", recipient.to_string())
-//         .add_attribute("amount", payout.to_string()))
-// }
+    Ok(Some(bank_msg))
+}
 
 
 #[entry_point]
@@ -490,7 +506,8 @@ pub fn approve_join_request(
     // Now apply side effects *after* the update to avoid borrow conflict
     if updated_request.approvals.len() * 2 >= plan.participants.len() {
         // 50%+ approved: add to participants, save plan, remove request
-        plan.participants.push(requester_addr.to_string());
+        let insert_at = plan.payout_index as usize;
+		plan.participants.insert(insert_at, requester_addr.to_string());
 		trust_score += 2;
 
         let now = _env.block.time.seconds();
@@ -610,4 +627,12 @@ fn cycles_between(start: u64, now: u64, frequency: &str) -> u64 {
 // Per-participant current cycle: uses their personal start time
 fn current_cycle_for_participant(start_time: u64, env: &Env, frequency: &str) -> u64 {
     cycles_between(start_time, env.block.time.seconds(), frequency)
+}
+
+fn cycles_per_month(freq: &Frequency) -> u32 {
+    match freq {
+        Frequency::Daily => 30,   // rough month
+        Frequency::Weekly => 4,   // 4 weeks ≈ month
+        Frequency::Monthly => 1,
+    }
 }

@@ -4,8 +4,9 @@ import {
 	useAbstraxionClient
  } from "@burnt-labs/abstraxion";
 import { ExecuteResult } from "@cosmjs/cosmwasm-stargate";
+import { StargateClient } from "@cosmjs/stargate";
 import { CreatePlanInput } from "../types/utils";
-import React, { createContext, useContext, ReactNode } from "react";
+import { createContext, useContext, ReactNode, useState, useEffect } from "react";
 import { Plan, ParticipantCycleStatus } from "../types/utils";
 
 
@@ -14,6 +15,7 @@ const contractAddress = import.meta.env.VITE_CONTRACT_ADDRESS;
 interface ContractContextProps {
   address: string;
   account?: string;
+  balance?: string;
   createPlan: (plan: CreatePlanInput) => Promise<ExecuteResult>;
   getPlansByCreator: (creator: string) => Promise<{ plans: Plan[] }>;
   getPlanById: (planId: number) => Promise<{ plan: Plan | null }>;
@@ -35,6 +37,35 @@ export const ContractProvider = ({ children }: { children: ReactNode }) => {
   const { client: signingClient } = useAbstraxionSigningClient();
 	const { client: queryClient } = useAbstraxionClient();
   const sender = account?.bech32Address;
+
+  const [balance, setBalance] = useState<string>("--");
+
+  const fetchBalance = async () => {
+  if (!sender) return;
+
+  try {
+    const stargateClient = await StargateClient.connect(import.meta.env.VITE_RPC_URL);
+    const coins = await stargateClient.getAllBalances(sender);
+
+    const uxion = coins.find(c => c.denom === "uxion");
+    const amount = uxion?.amount || "0";
+
+    setBalance((Number(amount) / 1_000_000).toFixed(2)); // convert uXION → XION
+  } catch (err) {
+    console.error("Error fetching balance:", err);
+    setBalance("--");
+  }
+};
+
+
+  // fetch automatically whenever account changes
+  useEffect(() => {
+    if (sender) {
+      fetchBalance();
+    } else {
+      setBalance("--");
+    }
+  }, [sender]);
 
   const createPlan = async (plan: CreatePlanInput): Promise<ExecuteResult> => {
     if (!signingClient || !sender) throw new Error("Wallet not connected");
@@ -166,6 +197,7 @@ export const ContractProvider = ({ children }: { children: ReactNode }) => {
     <ContractContext.Provider value={{
 		address: contractAddress,
 		account: sender,
+		balance: balance,
 		createPlan,
 		getPlansByCreator,
 		getPlanById,
