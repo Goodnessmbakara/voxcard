@@ -47,7 +47,7 @@ const Home = () => {
                 </Link>
                 <Link to="/plans">
                   <Button size="lg" variant="outline" className="border-vox-primary text-vox-primary hover:bg-vox-primary/10 w-full sm:w-auto">
-                    Browse Plans
+                    Browse Groups
                   </Button>
                 </Link>
               </motion.div>
