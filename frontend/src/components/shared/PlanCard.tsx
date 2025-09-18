@@ -79,15 +79,15 @@ export const PlanCard = ({ plan }: { plan: Plan }) => {
       </CardContent>
       <CardFooter>
         {isParticipantOrAdmin ? (
-          <Link to={`/plans/${plan.id}`} className="w-full">
+          <Link to={`/groups/${plan.id}`} className="w-full">
             <Button className="w-full" variant="outline">View Details</Button>
           </Link>
         ) : plan.is_active ? (
-          <Link to={`/plans/${plan.id}`} className="w-full">
+          <Link to={`/groups/${plan.id}`} className="w-full">
             <Button className="w-full bg-[#10B981] hover:bg-[#5ba88e] text-white">Join Plan</Button>
           </Link>
         ) : (
-          <Button disabled className="w-full bg-[#5ba88e]">Plan Inactive</Button>
+          <Button disabled className="w-full bg-[#5ba88e]">Group Inactive</Button>
         )}
       </CardFooter>
     </Card>

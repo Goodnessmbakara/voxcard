@@ -39,13 +39,13 @@ const Home = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.4 }}
               >
-                <Link to="/create-plan">
+                <Link to="/create-group">
                   <Button size="lg" className="gradient-bg text-white w-full sm:w-auto hover:opacity-90 transition-opacity">
                     Start a Savings Circle
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </Link>
-                <Link to="/plans">
+                <Link to="/groups">
                   <Button size="lg" variant="outline" className="border-vox-primary text-vox-primary hover:bg-vox-primary/10 w-full sm:w-auto">
                     Browse Groups
                   </Button>
@@ -146,7 +146,7 @@ const Home = () => {
               </div>
               <h3 className="text-xl font-heading font-semibold mb-2">Community-Driven</h3>
               <p className="text-vox-secondary/80 font-sans">
-                Join existing plans or create your own. Members vote on new participants to maintain 
+                Join existing groups or create your own. Members vote on new participants to maintain 
                 community trust and security.
               </p>
             </div>
@@ -214,14 +214,14 @@ const Home = () => {
               Join a community of savers and create your financial future together.
             </p>
             <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
-              <Link to="/create-plan">
+              <Link to="/create-group">
                 <Button size="lg" variant="secondary" className="bg-white text-vox-primary hover:bg-gray-100 w-full sm:w-auto font-sans">
-                  Create a Plan
+                  Create a Group
                 </Button>
               </Link>
-              <Link to="/plans">
+              <Link to="/groups">
                 <Button size="lg" className="bg-white/10 backdrop-blur-sm border-2 border-white text-white hover:bg-white/20 w-full sm:w-auto font-sans">
-                  Browse Plans
+                  Browse Groups
                 </Button>
               </Link>
             </div>

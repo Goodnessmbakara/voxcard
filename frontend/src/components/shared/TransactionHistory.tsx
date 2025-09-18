@@ -18,7 +18,7 @@ interface TransactionRecordDisplay {
 
 const TransactionHistory = () => {
   const { isConnected } = XionWalletService.useWallet();
-  // Placeholder: Replace with actual XION transaction history logic
+  
   const [transactions, setTransactions] = useState<TransactionRecordDisplay[]>(
     []
   );
@@ -34,7 +34,7 @@ const TransactionHistory = () => {
         </CardHeader>
         <CardContent>
           <div className="text-center py-6 text-gray-500">
-            Connect your wallet to view transactions.
+            Sign in to view transactions
           </div>
         </CardContent>
       </Card>

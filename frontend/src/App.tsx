@@ -43,11 +43,11 @@ const App = () => {
 							<Routes>
 								<Route path="/" element={<Home />} />
 								<Route path="/dashboard" element={<Dashboard />} />
-								<Route path="/create-plan" element={<CreatePlan />} />
+								<Route path="/create-group" element={<CreatePlan />} />
 								<Route path="/about" element={<About />} />
 								<Route path="*" element={<NotFound />} />
-								<Route path="/plans" element={<Plans />} />
-								<Route path="/plans/:planId" element={<PlanDetail />} />
+								<Route path="/groups" element={<Plans />} />
+								<Route path="/groups/:planId" element={<PlanDetail />} />
 							</Routes>
 							</AnimatePresence>
 						</ContractProvider>

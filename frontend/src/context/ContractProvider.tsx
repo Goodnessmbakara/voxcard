@@ -68,7 +68,7 @@ export const ContractProvider = ({ children }: { children: ReactNode }) => {
   }, [sender]);
 
   const createPlan = async (plan: CreatePlanInput): Promise<ExecuteResult> => {
-    if (!signingClient || !sender) throw new Error("Wallet not connected");
+    if (!signingClient || !sender) throw new Error("You are not signed in");
 	
     return await signingClient.execute(
 		sender,
@@ -82,7 +82,7 @@ export const ContractProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const getPlansByCreator = async (creator: string) => {
-	if (!queryClient || !sender) throw new Error("Wallet not connected");
+	if (!queryClient || !sender) throw new Error("You are not signed in");
 
 	return await queryClient.queryContractSmart(contractAddress, {
 		GetPlansByCreator: { creator },
@@ -90,7 +90,7 @@ export const ContractProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const getPlanById = async (planId: number) => {
-	if (!queryClient || !sender) throw new Error("Wallet not connected");
+	if (!queryClient || !sender) throw new Error("You are not signed in");
 
 	return await queryClient.queryContractSmart(contractAddress, {
 		GetPlan: { plan_id: planId },
@@ -98,7 +98,7 @@ export const ContractProvider = ({ children }: { children: ReactNode }) => {
 }	
 
   const getPaginatedPlans = async (page: number, pageSize: number) => {
-	if (!queryClient || !sender) throw new Error("Wallet not connected");
+	if (!queryClient || !sender) throw new Error("You are not signed in");
 
 	const countRes = await queryClient.queryContractSmart(contractAddress, {
 		GetPlanCount: {},
@@ -123,7 +123,7 @@ export const ContractProvider = ({ children }: { children: ReactNode }) => {
 	};
 
 	const requestJoinPlan = async (planId: number): Promise<ExecuteResult> => {
-		if (!signingClient || !sender) throw new Error("Wallet not connected");
+		if (!signingClient || !sender) throw new Error("You are not signed in");
 
 		return await signingClient.execute(
 			sender,
@@ -142,7 +142,7 @@ export const ContractProvider = ({ children }: { children: ReactNode }) => {
 	};
 
 	const approveJoinRequest = async (planId: number, requester: string): Promise<ExecuteResult> => {
-		if (!signingClient || !sender) throw new Error("Wallet not connected");
+		if (!signingClient || !sender) throw new Error("You are not signed in");
 
 		return await signingClient.execute(
 			sender,
@@ -155,7 +155,7 @@ export const ContractProvider = ({ children }: { children: ReactNode }) => {
 	};
 
 	const denyJoinRequest = async (planId: number, requester: string): Promise<ExecuteResult> => {
-		if (!signingClient || !sender) throw new Error("Wallet not connected");
+		if (!signingClient || !sender) throw new Error("You are not signed in");
 
 		return await signingClient.execute(
 			sender,
@@ -168,7 +168,7 @@ export const ContractProvider = ({ children }: { children: ReactNode }) => {
 	};
 
 	const contribute = async (planId: number, amountUxion: string) => {
-		if (!signingClient || !sender) throw new Error("Wallet not connected");
+		if (!signingClient || !sender) throw new Error("You are not signed in");
 		return signingClient.execute(
 			sender,
 			contractAddress,

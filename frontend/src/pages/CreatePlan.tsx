@@ -79,7 +79,7 @@ const CreatePlan = () => {
       await createPlan(values as CreatePlanInput);
 
       toast({
-        title: "Plan created on chain!",
+        title: "Group created on chain!",
         description: "Transaction submitted successfully.",
       });
 
@@ -88,7 +88,7 @@ const CreatePlan = () => {
       console.error(err);
       toast({
         title: "Blockchain error",
-        description: "Failed to create plan. Check logs and retry.",
+        description: "Failed to create group. Check logs and retry.",
         variant: "destructive",
       });
     } finally {
@@ -100,16 +100,16 @@ const CreatePlan = () => {
     <>
       <div className="container py-8 max-w-3xl mx-auto">
         <h1 className="text-3xl font-heading font-bold mb-6 text-vox-secondary">
-          Create New Savings Plan
+          Create New Savings Group
         </h1>
 
         <Card>
           <CardHeader>
             <CardTitle className="font-heading text-vox-primary">
-              Plan Details
+              Group Details
             </CardTitle>
             <CardDescription className="text-vox-secondary/80 font-sans">
-              Define your savings circle parameters. Once created, the plan will
+              Define your savings circle parameters. Once created, the group will
               be visible to potential participants but will only start when the
               required number of members join.
             </CardDescription>
@@ -125,7 +125,7 @@ const CreatePlan = () => {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Plan Name</FormLabel>
+                      <FormLabel>Group Name</FormLabel>
                       <FormControl>
                         <Input
                           placeholder="e.g. Community Savings Circle"
@@ -133,7 +133,7 @@ const CreatePlan = () => {
                         />
                       </FormControl>
                       <FormDescription>
-                        Choose a clear, memorable name for your savings plan.
+                        Choose a clear, memorable name for your savings group.
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -155,7 +155,7 @@ const CreatePlan = () => {
                       </FormControl>
                       <FormDescription>
                         Provide details that will help potential members
-                        understand the plan.
+                        understand the group.
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -307,8 +307,8 @@ const CreatePlan = () => {
                       Important Information
                     </h3>
                     <p className="text-sm text-amber-700">
-                      Creating a plan will require a transaction on the XION
-                      blockchain. Make sure your wallet is connected and has
+                      Creating a group will require a transaction on the XION
+                      blockchain. Make sure you are signed in and have
                       sufficient XION for transaction fees.
                     </p>
                   </div>
@@ -327,7 +327,7 @@ const CreatePlan = () => {
                       disabled={isSubmitting}
                       className="gradient-bg text-white font-sans hover:opacity-90 transition-opacity w-full"
                     >
-                      {isSubmitting ? "Creating..." : "Create Plan"}
+                      {isSubmitting ? "Creating..." : "Create Group"}
                     </Button>
                   </div>
                 </div>

@@ -43,8 +43,8 @@ const ContributeModal = ({ plan, cycleStatus, open, onClose, onSuccess }: Contri
   const handleContribute = async () => {
     if (!account?.bech32Address) {
       toast({
-        title: "Wallet not connected",
-        description: "Please connect your wallet first",
+        title: "You are not signed in",
+        description: "Please sign in",
         variant: "destructive",
       });
       return;
@@ -62,7 +62,7 @@ const ContributeModal = ({ plan, cycleStatus, open, onClose, onSuccess }: Contri
     if (!plan.allow_partial && amountUxion !== String(plan.contribution_amount)) {
       toast({
         title: "Full amount required",
-        description: `This plan requires exactly ${plan.contribution_amount} uxion.`,
+        description: `This group requires exactly ${plan.contribution_amount} uxion.`,
         variant: "destructive",
       });
       return;

@@ -97,8 +97,8 @@ const PlanDetail = () => {
   const handleJoinPlan = async () => {
 	if (!planId || !address) {
 		toast({
-		title: "Wallet not connected",
-		description: "Please connect your wallet first to join this plan",
+		title: " You are not signed in",
+		description: "Please sign up to join this group",
 		variant: "destructive",
 		});
 		return;
@@ -188,14 +188,14 @@ const PlanDetail = () => {
 		<>
 			<div className="container py-16 text-center">
 			<h1 className="text-3xl font-heading font-bold mb-4 text-vox-secondary">
-				Loading Plan...
+				Loading Group...
 			</h1>
 			<p className="mb-8 text-vox-secondary/70 font-sans">
-				Please wait while we fetch plan details.
+				Please wait while we fetch group details.
 			</p>
-			<Link to="/plans">
+			<Link to="/groups">
 				<Button className="gradient-bg text-white font-sans hover:opacity-90 transition-opacity">
-				Back to Plans
+				Back to Groups
 				</Button>
 			</Link>
 			</div>
@@ -238,7 +238,7 @@ const PlanDetail = () => {
 					className="mt-4 md:mt-0 gradient-bg text-white"
 					onClick={() => {
 					// Call your activate/deactivate function here
-					console.log("Toggle plan active state");
+					console.log("Toggle group active state");
 					}}
 				>
 					{plan?.is_active ? "Deactivate" : "Activate"}
@@ -274,7 +274,7 @@ const PlanDetail = () => {
           <div className="lg:col-span-1 space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Plan Details</CardTitle>
+                <CardTitle>Group Details</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
@@ -350,11 +350,11 @@ const PlanDetail = () => {
               <TabsContent value="overview">
                 <Card>
                   <CardHeader>
-                    <CardTitle>How This Plan Works</CardTitle>
+                    <CardTitle>How This Group Works</CardTitle>
                     <CardDescription>Understand the savings rotation process.</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <p>This is a {plan.frequency.toLowerCase()} plan where each member contributes {plan.contribution_amount} XION for {plan.duration_months} {plan.duration_months === 1 ? "month" : "months"}.</p>
+                    <p>This is a {plan.frequency.toLowerCase()} group plan where each member contributes {plan.contribution_amount} XION for {plan.duration_months} {plan.duration_months === 1 ? "month" : "months"}.</p>
                     <p>One member gets the pooled amount each cycle. The order is based on trust scores and join order.</p>
                   </CardContent>
                 </Card>
@@ -394,7 +394,7 @@ const PlanDetail = () => {
 			<Card className="lg:col-span-3 mt-6">
 				<CardHeader>
 				<CardTitle>Pending Join Requests</CardTitle>
-				<CardDescription>Approve or deny new members who want to join this plan.</CardDescription>
+				<CardDescription>Approve or deny new members who want to join this group.</CardDescription>
 				</CardHeader>
 				<CardContent className="space-y-3">
 				{filteredJoinRequests.map((requester, idx) => (

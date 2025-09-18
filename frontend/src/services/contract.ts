@@ -41,7 +41,7 @@ export class ContractService {
   // Deploy a new savings plan contract using the wallet SDK
   async deployContract(plan: Plan, signAndBroadcast: any, fromAddress: string): Promise<{ address: string; txHash: string }> {
     try {
-      console.log("Starting contract deployment for plan:", plan);
+      console.log("Starting contract deployment for group:", plan);
       console.log("From address:", fromAddress);
 
       // Prepare instantiate message for the contract
@@ -75,7 +75,7 @@ export class ContractService {
 
       // Broadcast the transaction
       console.log("Broadcasting transaction...");
-      const result = await signAndBroadcast([msg], { amount: [], gas: '2000000' }, 'Instantiate savings plan contract');
+      const result = await signAndBroadcast([msg], { amount: [], gas: '2000000' }, 'Instantiate savings group contract');
       
       console.log("Transaction result:", result);
       console.log("Transaction result keys:", Object.keys(result));
@@ -217,12 +217,12 @@ export class ContractService {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to join plan');
+        throw new Error('Failed to join group');
       }
 
       return await response.json();
     } catch (error) {
-      console.error('Error joining plan:', error);
+      console.error('Error joining group:', error);
       throw error;
     }
   }

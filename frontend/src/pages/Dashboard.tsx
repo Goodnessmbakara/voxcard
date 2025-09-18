@@ -92,7 +92,7 @@ const Dashboard = () => {
 
   // Mock data usage
   const user = defaultUser;
-  const address = wallet.address ? wallet.address : "Not Connected";
+  const address = wallet.address ? wallet.address : "Not Signed In";
 
 	useEffect(() => {
 		const fetchPlans = async () => {
@@ -127,7 +127,7 @@ const Dashboard = () => {
             <p className="text-vox-secondary/70 font-sans">Manage your savings group and track your progress.</p>
           </div>
           {wallet.isConnected && (
-            <Link to="/create-plan" className="mt-4 md:mt-0">
+            <Link to="/create-group" className="mt-4 md:mt-0">
               <Button className="gradient-bg text-white font-sans hover:opacity-90 transition-opacity">
                 <Plus size={16} className="mr-2" />
                 Create Group
@@ -241,7 +241,7 @@ const Dashboard = () => {
                   <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                     <TabsList className="mb-6">
                       <TabsTrigger value="overview">Overview</TabsTrigger>
-                      <TabsTrigger value="plans">Your Groups</TabsTrigger>
+                      <TabsTrigger value="groups">Your Groups</TabsTrigger>
                       <TabsTrigger value="contributions">Contributions</TabsTrigger>
                     </TabsList>
 
@@ -254,7 +254,7 @@ const Dashboard = () => {
 							{userPlans.filter((plan) => plan.is_active).length > 0 ? (
 							<div className="space-y-6">
 								<h2 className="text-xl font-heading font-semibold text-vox-secondary">
-								Your Active Plans
+								Your Active Groups
 								</h2>
 								{userPlans
 								.filter((plan) => plan.is_active)
@@ -282,12 +282,12 @@ const Dashboard = () => {
 								</p>
 								</CardContent>
 								<CardFooter className="flex flex-col sm:flex-row gap-3">
-								<Link to="/plans" className="w-full sm:w-auto">
+								<Link to="/groups" className="w-full sm:w-auto">
 									<Button className="w-full font-sans border-vox-primary text-vox-primary hover:bg-vox-primary/10">
 									Browse Groups
 									</Button>
 								</Link>
-								<Link to="/create-plan" className="w-full sm:w-auto">
+								<Link to="/create-group" className="w-full sm:w-auto">
 									<Button className="w-full gradient-bg text-white font-sans hover:opacity-90 transition-opacity">
 									Create a Group
 									</Button>
@@ -299,7 +299,7 @@ const Dashboard = () => {
 					</TabsContent>
 
 
-                    <TabsContent value="plans">
+                    <TabsContent value="groups">
                       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
                         <h2 className="text-xl font-heading font-semibold text-vox-secondary">All Your Groups</h2>
                         {userPlans.length > 0 ? (
@@ -309,7 +309,7 @@ const Dashboard = () => {
                         ) : (
                           <div className="text-center py-12">
                             <p className="text-vox-secondary/70 mb-4 font-sans">You haven't joined any group yet.</p>
-                            <Link to="/plans">
+                            <Link to="/groups">
                               <Button className="gradient-bg text-white font-sans hover:opacity-90 transition-opacity">Browse Groups</Button>
                             </Link>
                           </div>

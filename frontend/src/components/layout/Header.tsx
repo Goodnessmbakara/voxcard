@@ -54,10 +54,10 @@ export const Header = () => {
               Dashboard
             </Link>
             <Link
-              to="/plans"
+              to="/groups"
               className="text-vox-secondary whitespace-nowrap hover:text-vox-primary transition-colors font-sans"
             >
-              Savings Plans
+              Savings Groups
             </Link>
             <Link
               to="/community"
@@ -132,10 +132,10 @@ export const Header = () => {
                       Dashboard
                     </Link>
                     <Link
-                      to="/plans"
+                      to="/groups"
                       className="block text-vox-secondary hover:text-vox-primary transition-colors font-sans"
                     >
-                      Savings Plans
+                      Savings Groups
                     </Link>
                     <Link
                       to="/community"

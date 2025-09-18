@@ -35,8 +35,8 @@ const Plans = () => {
         setPlans(paginatedPlans);
         // Optionally store totalCount for pagination UI
       } catch (err) {
-        console.error('Error fetching plans:', err);
-        setError(err instanceof Error ? err.message : 'Failed to fetch plans');
+        console.error('Error fetching groups:', err);
+        setError(err instanceof Error ? err.message : 'Failed to fetch groups');
       } finally {
         setLoading(false);
       }
@@ -72,7 +72,7 @@ const Plans = () => {
           <div className="relative flex-1">
             <Search size={18} className="absolute left-3 top-3 text-vox-secondary/40" />
             <Input
-              placeholder="Search plans by name or description..."
+              placeholder="Search groups by name or description..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 font-sans border-vox-primary focus:ring-vox-primary rounded-lg"
@@ -96,7 +96,7 @@ const Plans = () => {
         {/* Results */}
         <AnimatePresence>
           {loading ? (
-            <motion.div className="text-center py-16">Loading plans...</motion.div>
+            <motion.div className="text-center py-16">Loading groups...</motion.div>
           ) : error ? (
             <motion.div className="text-center py-16">{error}</motion.div>
           ) : filteredPlans.length > 0 ? (
@@ -106,7 +106,7 @@ const Plans = () => {
               ))}
             </motion.div>
           ) : (
-            <motion.div className="text-center py-16">No plans found.</motion.div>
+            <motion.div className="text-center py-16">No groups found.</motion.div>
           )}
         </AnimatePresence>
       </div>

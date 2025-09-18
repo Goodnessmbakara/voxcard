@@ -29,7 +29,6 @@ export const JoinPlanModal = ({ planName, planId, open, onClose }: JoinPlanModal
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
-  // Handle the join plan request
   const handleSubmit = async () => {
     if (!sponsor.trim()) {
       toast({
@@ -42,8 +41,8 @@ export const JoinPlanModal = ({ planName, planId, open, onClose }: JoinPlanModal
 
     if (!false) {
       toast({
-        title: "Wallet not connected",
-        description: "Please connect your wallet first",
+        title: "You are not signed in",
+        description: "Please sign in",
         variant: "destructive",
       });
       return;
@@ -67,7 +66,7 @@ export const JoinPlanModal = ({ planName, planId, open, onClose }: JoinPlanModal
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Request to Join Plan</DialogTitle>
+          <DialogTitle>Request to Join Group</DialogTitle>
           <DialogDescription>
             To join "{planName}", you need to be vouched for by an existing member.
           </DialogDescription>

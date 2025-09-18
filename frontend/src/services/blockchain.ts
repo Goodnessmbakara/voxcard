@@ -33,7 +33,7 @@ class XionWalletService {
     fromAddress: string
   ) {
     try {
-      if (!signAndBroadcast) throw new Error('Wallet not connected');
+      if (!signAndBroadcast) throw new Error('You are not signed in');
       if (!recipient) throw new Error('Recipient address required');
       const msg = {
         typeUrl: '/cosmos.bank.v1beta1.MsgSend',

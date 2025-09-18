@@ -22,7 +22,7 @@ const About = () => {
           <section>
             <h2 className="text-2xl font-heading font-semibold text-vox-primary mb-2">How It Works</h2>
             <ul className="list-disc pl-6 text-vox-secondary/80 font-sans space-y-2">
-              <li>Anyone can create or join a savings plan (circle).</li>
+              <li>Anyone can create or join a savings group (circle).</li>
               <li>Funds are pooled and managed by XION smart contracts.</li>
               <li>Members take turns receiving the pooled funds, based on trust and schedule.</li>
               <li>All transactions are transparent and verifiable on-chain.</li>
@@ -33,7 +33,7 @@ const About = () => {
             <ul className="list-disc pl-6 text-vox-secondary/80 font-sans space-y-2">
               <li>Decentralized, no single point of failure or control.</li>
               <li>Trust scoring for fair and secure participation.</li>
-              <li>Flexible payment options and plan customization.</li>
+              <li>Flexible payment options and group customization.</li>
               <li>Community-driven, transparent, and inclusive.</li>
             </ul>
           </section>
